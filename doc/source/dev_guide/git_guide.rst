@@ -131,7 +131,7 @@ to start working.
 
 
 Editing, Staging, Committing
-----------------------
+----------------------------
 Now that we are on a new branch we are ready to start working.  You can
 use what ever editor you want to create and edit files.  When you reach a
 point in your work when you want to save what you have done (ideally this
@@ -163,9 +163,72 @@ proceed.  To add files to the commit use **add**  ::
 
     git add filename1, filename2, ...
 
-You can also use shell expansions.  After running ::
+You can also use shell expansions.  After **add**\ ing the files we
+want to **commit**, running **status** again prints::
 
-   git add
+    # On branch add_sphinx
+    # Changes to be committed:
+    #   (use "git reset HEAD <file>..." to unstage)
+    #
+    #       modified:   source/dev_guide/git_guide.rst
+    #       new file:   source/dev_guide/index.rst
+    #       modified:   source/index.rst
+    #
+
+Having confirmed that things look right (you didn't miss any files or
+add files that should not be committed) run ::
+
+   git commit
+
+which will open a text editor and prompt you enter a message to go
+with your commit.  The message should start with a one-line summary of
+the change and then a few sentences describing the changes in more detail.  The commit message for this commit will be ::
+
+   DOC : basic git usage
+
+   Added text about basic git usage.
+
+Repeat this process as often as necessary.
+
+Changing Branches
+-----------------
+
+The files in the repository directory are what `git` refers to as you
+**working copy**.  When you switch **branch**\ es `git` will make your
+working copy look exactly like the snapshot saved in the **commit**
+the **branch** points to.  For example say you are working on
+**branch** *new_feature* and you notice an un-related bug.  You should
+**commit** all of your feature work (or use **stash**) and then switch back
+to the `master` branch ::
+
+  git checkout master
+
+The **working copy** now contains none of your new work.  Create a new
+branch to fix the bug ::
+
+  git checkout -b bug_fix
+
+Once you have fixed and committed the bug, switch back to your feature
+branch::
+
+  git checkout new_feature
+
+and pick up where you left off.
+
+Reverting edits
+---------------
+
+Sometimes edits just are not working out and you need to throw away
+all uncommitted changes to a file or the entire **working copy**.  For
+a single file ::
+
+   git checkout -- file_name
+
+and to throw out *all* of your changes and reset your working
+directory to the last commit on your branch ::
+
+   git reset --hard current_branch
+
 =============
 Collaborating
 =============
@@ -220,6 +283,21 @@ which will allow you to **fetch** to your local computer any commits they have
 Fetch
 ^^^^^
 
+Fetching is very simple, assuming you have added the repository you want
+to **fetch** from as a **remote** ::
+
+   get fetch remote_name
+
+which will copy all of the commits in the **remote** repository that
+are not already in your local repository.   This does not change your
+**working copy**, only updates what **commit**\ s `git` knows about.
+
+To checkout a local copy of a remote **branch**
+
+   git checkout -t remote_name/remote_branch
+
+
+
 Push
 ^^^^
 
@@ -229,3 +307,4 @@ Merging
 Rebase on to master
 ===================
 
+TODO
