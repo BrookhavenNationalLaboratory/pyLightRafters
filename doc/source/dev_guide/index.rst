@@ -8,4 +8,4 @@ Development Guide
   :maxdepth: 2
 
   git_guide.rst
-
+  workflow.rst
