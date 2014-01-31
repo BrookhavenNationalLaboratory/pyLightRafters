@@ -296,13 +296,37 @@ To checkout a local copy of a remote **branch**
 
    git checkout -t remote_name/remote_branch
 
-
+See :ref:`git-merging` for how to merge these changes into your branches.
 
 Push
 ^^^^
+**push** is the symmetric operation to **fetch** as ships commits *to*
+a remote.   The first time you **push** a **branch** you need to tell `git`
+which branch on the **remote** to push to::
+
+   git push --set-upstream github branch_name
+
+and all subsequent times you can just use ::
+
+   git push github
+
+This is the mechanism to share code with in the group, as once you
+have pushed **commit**\ s to `github`, anyone who can see your repository
+can **fetch** them and begin to work with them.
+
+.. _git-merging
 
 Merging
 =======
+
+You merge two branches by changing to the branch you would like to merge *into* and running ::
+
+   git merge merge_source
+
+If your current branch has no commits that are not in *merge_source*
+it is called a 'fast-forward' merge and will always succeed.  If your
+local branch has commits that are not in `merge_source` the merge can
+generate conflicts which will need to resolved by hand.
 
 Rebase on to master
 ===================
