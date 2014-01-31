@@ -35,6 +35,7 @@ Assuming you already have your repository set up::
    git checkout -b new_feature
 
 You now do a bunch of work::
+
    git add ...
    git commit
    git add ...

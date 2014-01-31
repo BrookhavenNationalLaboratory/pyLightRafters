@@ -266,7 +266,8 @@ which should print something like: ::
     upstream        git@github.com:BrookhavenNationalLaboratory/pyLight.git (push)
 
 
-which shows two remotes.  It is recommended to re-name `origin` -> `github` ::
+which shows two remotes.  It is recommended to re-name `origin` ->
+`github` ::
 
 
    git remote rename origin github
@@ -292,7 +293,7 @@ which will copy all of the commits in the **remote** repository that
 are not already in your local repository.   This does not change your
 **working copy**, only updates what **commit**\ s `git` knows about.
 
-To checkout a local copy of a remote **branch**
+To checkout a local copy of a remote **branch** ::
 
    git checkout -t remote_name/remote_branch
 
@@ -332,3 +333,9 @@ Rebase on to master
 ===================
 
 TODO
+
+
+Help
+====
+
+If you have any issues contact Thomas Caswell tcaswell@bnl.gov ex3146
