@@ -38,17 +38,25 @@ class FilePath(traitlets.Unicode):
     """
     @property
     def filters(self):
-        if self.get_metadat('filters'):
-            return self.get_metadat('filters')
+        if self.get_metadata('filters'):
+            return self.get_metadata('filters')
         return ()
 
 
 # a map between traitlets and the types used in the json files
-trait_map = {traitlets.Int: 'int',
+_trait_map = {traitlets.Int: 'int',
             traitlets.Float: 'float',
             FilePath: 'file_select'}
 
 
+def _get_label(key, trait):
+    label = trait.get_metadata('label')
+    if label:
+        return label
+    return key
+
+
+# classes for defining tools
 class ToolBase(traitlets.HasTraits):
     """
     Base class for `Tool` objects.
@@ -58,28 +66,112 @@ class ToolBase(traitlets.HasTraits):
     accumulate inputs/parameters, validate the inputs provide tools for
     introspection, and run the tool when called.
     """
+
+    _registry = {}
+
+    @classmethod
+    def register(cls, sub_class):
+        """
+
+        """
+        cls._registry[sub_class.__name__] = sub_class
+
     @property
     def id(self):
-        raise NotImplementedError()
+        """
+        Return the 'id' of the tool.
+
+        Returns
+        -------
+        id : str
+           The id of the tool
+        """
+        return self.__class__.__name__.lower()
 
     @property
-    def input(self):
-        pass
+    def params(self):
+        """
+        Returns a list of (key, value) pairs for the
+        traits with the role 'param'
+        """
+        return [(k, v) for k, v in self.traits().items()
+                if v.get_metadata('role') == 'param']
 
     @property
-    def output(self):
-        pass
+    def input_files(self):
+        """
+        Returns a list of (key, value) pairs for the
+        traits with the role 'input_file'
+        """
+        return [(k, v) for k, v in self.traits().items()
+                if v.get_metadata('role') == 'input_file']
+
+    @property
+    def output_files(self):
+        """
+        Returns a list of (key, value) pairs for the
+        traits with the role 'input_file'
+        """
+        return [(k, v) for k, v in self.traits().items()
+                if v.get_metadata('role') == 'output_file']
+
+    def format_json_input(self):
+        """
+        Returns a dictionary which matches the parsed result of 'input'
+        section of the existing json files
+
+        """
+        out = []
+        # loop over the parameters
+        for k, v in self.params:
+            # get the ones labeled input
+            tmp_dict = {}
+            tmp_dict['label'] = _get_label(k, v)
+            tmp_dict['type'] = _trait_map[type(v)]
+            out.append(tmp_dict)
+        # loop over the input files
+        for k, v in self.input_files:
+            tmp_dict = {}
+            tmp_dict['label'] = _get_label(k, v)
+            tmp_dict['type'] = _trait_map[type(v)]
+            tmp_dict['suffix'] = v.filters[0]
+            out.append(tmp_dict)
+        # return
+        return out
+
+    def format_json_output(self):
+        """
+        Returns a dictionary which matches the parsed result of 'output'
+        section of the existing json files
+
+        """
+        out = []
+        for k, v in self.output_files:
+            tmp_dict = {}
+            tmp_dict['name'] = v.get_metadata('name')
+            tmp_dict['type'] = v.filters[0]
+            out.append(tmp_dict)
+        return out
 
     @property
     def mode(self):
+        """
+        returns the mode of the tool
+        """
         raise NotImplementedError()
 
     @property
     def title(self):
-        raise NotImplementedError()
+        """
+        Returns the title of the Tool.  Defaults to using the class name.
+        """
+        return self.__class__.__name__
 
     @property
     def tutorial(self):
+        """
+        Return the tutorial, a short description of what the tool is.
+        """
         raise NotImplementedError()
 
     def run(self):
@@ -90,29 +182,71 @@ class ToolBase(traitlets.HasTraits):
         """
         raise NotImplementedError()
 
-    def get_config_dict(self):
-        pass
+    def gen_json_dict(self):
+        """
+        Return a dictionary describing the tool to be compatible with
+        existing frame work.
+        """
+        json_dict = {}
+        json_dict['id'] = self.id
+        json_dict['input'] = self.format_json_input()
+        json_dict['output'] = self.format_json_output()
+        json_dict['command'] = self.command
+        json_dict['mode'] = self.mode
+        json_dict['title'] = self.title
+        json_dict['tutorial'] = self.tutorial
+        return json_dict
 
 
-class Addition(ToolBase):
-    a = traitlets.Int(0, desc='first integer')
-    b = traitlets.Int(2, desc='second integer')
-    c = IntRange(min_max=(0, 5), desc='limit range demo')
+class Ptychography(ToolBase):
+    # input files
+    data_file = FilePath(filters=['npy'],
+                         label='Data file',
+                         role='input_file')
+    obj_config_in = FilePath(filters=['npy'],
+                               label='Input Object Config File',
+                                role='input_file')
+    probe_config_in = FilePath(filters=['npy'],
+                                 label='Input Probe config file',
+                                 role='input_file')
+    # parameters
+    scan_number = traitlets.Int(label='Scan number', role='param')
+    replicated_number = traitlets.Int(label='Replicated Number',
+                                      role='param')
+    iterations = traitlets.Int(label='Iterations', role='param')
 
-    def __init__(self):
-        pass
+    # output files
+    image = FilePath(filters=['png'],
+                     label='image',
+                     role='output_file',
+                     name='image')
+    obj_config_out = FilePath(filters=['npy'],
+                               label='Output Object Config File',
+                                role='output_file',
+                                name='object_config')
+    probe_config_out = FilePath(filters=['npy'],
+                                 label='Output Probe config file',
+                                 role='output_file',
+                                 name='probe_config')
+    result = FilePath(filters=['zip'],
+                      label='result',
+                      role='output_file',
+                      name='result')
 
-    def run(self):
-        return self.a + self.b
+    @property
+    def tutorial(self):
+        return ("Ptychography is a form of scanning " +
+                "diffractive imaging that can successfully " +
+                "retrieve the modulus and phase of both the " +
+                "sample transmission function and the " +
+                "illuminating probe.")
 
+    @property
+    def mode(self):
+        return 'local'
 
-class Subtraction(traitlets.HasTraits):
-    a = traitlets.Int(0, desc='first integer')
-    b = traitlets.Int(2, desc='second integer')
-    c = IntRange(min_max=(0, 5), desc='limit range demo')
+    @property
+    def command(self):
+        return "python recon_ptycho_pc.py"
 
-    def __init__(self):
-        pass
-
-    def run(self):
-        return self.a - self.b
+ToolBase.register(Ptychography)
