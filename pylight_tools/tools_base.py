@@ -4,6 +4,11 @@ A set of base classes to provide the interface between the interface
 between the front-end frame work and the back-end tools.
 
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+import six
+
 import IPython.utils.traitlets as traitlets
 
 
