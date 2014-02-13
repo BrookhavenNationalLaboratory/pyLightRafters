@@ -1,6 +1,6 @@
 """
 
-A set of base classes to provide the interface between the interface
+A set of base classes to provide the interface
 between the front-end frame work and the back-end tools.
 
 """
@@ -99,7 +99,7 @@ class ToolBase(traitlets.HasTraits):
         Returns a list of (key, value) pairs for the
         traits with the role 'param'
         """
-        return [(k, v) for k, v in self.traits().items()
+        return [(k, v) for k, v in six.iteritems(self.traits())
                 if v.get_metadata('role') == 'param']
 
     @property
@@ -108,7 +108,7 @@ class ToolBase(traitlets.HasTraits):
         Returns a list of (key, value) pairs for the
         traits with the role 'input_file'
         """
-        return [(k, v) for k, v in self.traits().items()
+        return [(k, v) for k, v in six.iteritems(self.traits())
                 if v.get_metadata('role') == 'input_file']
 
     @property
@@ -117,7 +117,7 @@ class ToolBase(traitlets.HasTraits):
         Returns a list of (key, value) pairs for the
         traits with the role 'input_file'
         """
-        return [(k, v) for k, v in self.traits().items()
+        return [(k, v) for k, v in six.iteritems(self.traits())
                 if v.get_metadata('role') == 'output_file']
 
     def format_json_input(self):
