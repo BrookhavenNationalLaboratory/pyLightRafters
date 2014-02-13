@@ -11,8 +11,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   dev_guide/index.rst
-
+   dev_guide/index
+   reference/tools
 
 Indices and tables
 ==================
@@ -20,4 +20,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
