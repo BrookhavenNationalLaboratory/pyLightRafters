@@ -9,7 +9,7 @@ from __future__ import (absolute_import, division, print_function,
 import six
 from six import with_metaclass
 from abc import ABCMeta, abstractmethod, abstractproperty
-
+from collections import defaultdict
 
 class BaseDataHandler(with_metaclass(ABCMeta, object)):
     """
@@ -172,3 +172,34 @@ class FileHandler(with_metaclass(ABCMeta, object)):
         Return a list of file extension
         """
         pass
+
+
+class InterfaceRegistry(object):
+    """
+    A singleton class to keep track of what handler classes implement
+    which interfaces
+    """
+    def __init__(self):
+        # the dict to keep track of everything
+        self._handlers = defaultdict(list)
+
+    # decorator function
+    def register(self, iface_list):
+
+        def wrapper(inner_class):
+            # sub-class the input class from all of the
+            # interfaces passed in
+            wrapped_klass = type(inner_class.__name__,
+                            (inner_class,) + tuple(iface_list),
+                            {})
+            # add the wrapped class to the handler list for each
+            # interface
+            for iface in iface_list:
+                self._handlers[iface].append(wrapped_klass)
+            # return the new sub-class
+            return wrapped_klass
+        # return the function so the decorator warks
+        return wrapper
+
+#set up singleton
+IR = InterfaceRegistry()
