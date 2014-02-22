@@ -91,6 +91,13 @@ class ArgSpec(object):
         # return the tooltip
         return self._tooltip
 
+    @property
+    def json_entry(self):
+        tmp_dict = {}
+        tmp_dict['label'] = self.label
+        tmp_dict['type'] = str(self.dtype)
+        return tmp_dict
+
 
 class RangeArgSpec(ArgSpec):
     """
@@ -126,6 +133,13 @@ class RangeArgSpec(ArgSpec):
         """
         return self._max
 
+    @property
+    def json_entry(self):
+        tmp_dict = ArgSpec.json_entry(self)
+        tmp_dict['min'] = self.min_val
+        tmp_dict['max'] = self.max_val
+        return tmp_dict
+
 
 class EnumArgSpec(ArgSpec):
     """
@@ -145,3 +159,9 @@ class EnumArgSpec(ArgSpec):
             The valid values
         """
         return self._valid_vals
+
+    @property
+    def json_entry(self):
+        tmp_dict = ArgSpec.json_entry(self)
+        tmp_dict['valid_vals'] = self.valid_vals
+        return tmp_dict
