@@ -9,7 +9,7 @@ from __future__ import (absolute_import, division, print_function,
 import six
 from six import with_metaclass
 from abc import ABCMeta, abstractmethod, abstractproperty
-from collections import defaultdict
+
 
 class BaseDataHandler(with_metaclass(ABCMeta, object)):
     """
@@ -63,10 +63,6 @@ class BaseDataHandler(with_metaclass(ABCMeta, object)):
         active : bool
             If the source/sink is 'active'
         """
-        pass
-
-    @abstractmethod
-    def _register(self):
         pass
 
 

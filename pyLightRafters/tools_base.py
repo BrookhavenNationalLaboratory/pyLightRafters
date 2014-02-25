@@ -72,15 +72,6 @@ class ToolBase(traitlets.HasTraits):
     introspection, and run the tool when called.
     """
 
-    _registry = {}
-
-    @classmethod
-    def register(cls, sub_class):
-        """
-
-        """
-        cls._registry[sub_class.__name__] = sub_class
-
     @property
     def id(self):
         """
