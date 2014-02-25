@@ -1,5 +1,5 @@
-pyLight_tools
-=============
+pyLightRafters
+==============
 
 Interface layer for CT image processing tools.
 
@@ -52,4 +52,4 @@ Example Tools
 
 
 
-The tools in `pylight_tools.tools` are intended to provide a template for adding new tools.
+The tools in `pyLightRafters.tools` are intended to provide a template for adding new tools.
