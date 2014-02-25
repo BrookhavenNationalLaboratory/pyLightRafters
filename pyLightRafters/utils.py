@@ -154,7 +154,8 @@ class MD_dict(MutableMapping):
         # not something easy, try to guess what to do instead
         try:
             # if the second element is a string or None, cast to named tuple
-            if isinstance(val[1], str) or val[1] is None:
+            if isinstance(val[1], string_types) or val[1] is None:
+                print('here')
                 tmp[key_split[-1]] = md_value(*val)
             # else, assume whole thing is the value with no units
             else:
