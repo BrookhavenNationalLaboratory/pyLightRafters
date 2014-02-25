@@ -15,7 +15,7 @@ except ImportError:
 print("Installing pyLight Tools")
 
 MAJOR = 0
-MINOR = 2
+MINOR = 0
 MICRO = 0
 ISRELEASED = False
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
@@ -51,7 +51,7 @@ if not ISRELEASED:
                 rev = rev.decode('ascii')
 
             # use result of git describe as version string
-            FULLVERSION = rev.lstrip('v')
+            FULLVERSION = VERSION + '-' + rev.lstrip('v')
             break
 else:
     FULLVERSION += QUALIFIER
@@ -61,6 +61,7 @@ setup(
     version=FULLVERSION,
     author='Brookhaven National Lab',
     url="https://github.com/BrookhavenNationalLaboratory/pyLightRafters",
-    packages=["pyLightRafters", 'pyLightRafters.handlers'],
+    packages=['pyLightRafters',
+              'pyLightRafters.handlers'],
     install_requires=['numpy', 'six', 'h5py']
     )
