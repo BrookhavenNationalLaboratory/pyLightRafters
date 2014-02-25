@@ -62,6 +62,7 @@ setup(
     author='Brookhaven National Lab',
     url="https://github.com/BrookhavenNationalLaboratory/pyLightRafters",
     packages=['pyLightRafters',
-              'pyLightRafters.handlers'],
+              'pyLightRafters.handlers',
+              'pyLightRafters.tools'],
     install_requires=['numpy', 'six', 'h5py']
     )
