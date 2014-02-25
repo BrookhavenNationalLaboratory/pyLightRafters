@@ -1,4 +1,6 @@
-#!/usr/bin/env python
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 
 import sys
 import warnings
@@ -21,7 +23,7 @@ VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 QUALIFIER = ''
 
 FULLVERSION = VERSION
-print FULLVERSION
+print(FULLVERSION)
 
 if not ISRELEASED:
     import subprocess
