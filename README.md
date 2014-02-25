@@ -3,6 +3,7 @@ pyLight_tools
 
 Interface layer for CT image processing tools.
 
+[![Build Status](https://travis-ci.org/BrookhavenNationalLaboratory/pyLightRafters.png?branch=master)](https://travis-ci.org/BrookhavenNationalLaboratory/pyLightRafters)
 
 Base Classes
 ------------
