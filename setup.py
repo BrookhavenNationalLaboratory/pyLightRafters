@@ -1,5 +1,4 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (absolute_import, division, print_function)
 
 
 import sys
@@ -62,6 +61,6 @@ setup(
     version=FULLVERSION,
     author='Brookhaven National Lab',
     url="https://github.com/BrookhavenNationalLaboratory/pyLightRafters",
-    packages=["pyLightRafters"],
+    packages=["pyLightRafters", ],
     install_requires=['numpy', 'six', 'h5py']
     )
