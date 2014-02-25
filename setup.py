@@ -55,10 +55,10 @@ else:
     FULLVERSION += QUALIFIER
 
 setup(
-    name='pylight_tools',
+    name='pyLightRafters',
     version=FULLVERSION,
     author='Brookhaven National Lab',
-    url="https://github.com/BrookhavenNationalLaboratory/pyLight",
-    packages=["pylight_tools"],
-    install_requires=['numpy', 'six', 'scipy', 'ipython', 'h5py']
+    url="https://github.com/BrookhavenNationalLaboratory/pyLightRafters",
+    packages=["pyLightRafters"],
+    install_requires=['numpy', 'six', 'h5py']
     )
