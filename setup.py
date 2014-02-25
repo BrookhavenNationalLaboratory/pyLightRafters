@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import warnings
 try:
     from setuptools import setup
 except ImportError:
