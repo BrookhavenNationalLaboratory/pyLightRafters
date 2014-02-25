@@ -1,6 +1,9 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import six
+
+import h5py
+
 from six.moves import xrange
 from nose.tools import assert_equal
 
@@ -46,3 +49,20 @@ def _gen_levels(n):
 def test_nesting():
     for j in xrange(5):
         yield _gen_levels, j
+
+
+def test_hdf_simple_roundtrip():
+    # make file in memory
+    F = h5py.File('test.h5', driver='core', mode='w', backing_store=False)
+    tt = MD_dict()
+    tt['name'] = 'test'
+    tt['a.a'] = 1
+    tt['a.b'] = md_value(2, 'counts')
+    tt['a.c.d'] = md_value(.5, 'm')
+
+    g = F.require_group('md_test')
+    tt.write_hdf(g)
+
+    tt2 = MD_dict.read_hdf_group(g)
+
+    assert_equal(tt, tt2)
