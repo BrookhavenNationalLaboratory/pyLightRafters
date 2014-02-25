@@ -11,7 +11,7 @@ import six
 
 import IPython.utils.traitlets as traitlets
 from . import args_base
-
+from . import data_base
 
 ## a set of custom triatlets
 class IntRange(traitlets.Int):
@@ -90,8 +90,8 @@ class ToolBase(traitlets.HasTraits):
         Returns a list of (key, value) pairs for the
         traits with the role 'param'
         """
-        return [(k, v) for k, v in six.iteritems(self.traits())
-                if v.get_metadata('role') == 'param']
+        return [_trait_to_arg(v) for v in six.itervalues(self.traits())
+                if _param_filter(v)]
 
     @property
     def input_files(self):
@@ -99,8 +99,8 @@ class ToolBase(traitlets.HasTraits):
         Returns a list of (key, value) pairs for the
         traits with the role 'input_file'
         """
-        return [(k, v) for k, v in six.iteritems(self.traits())
-                if v.get_metadata('role') == 'input_file']
+        return [_trait_to_arg(v) for v in six.itervalues(self.traits())
+                if _source_filter(v)]
 
     @property
     def output_files(self):
@@ -108,8 +108,8 @@ class ToolBase(traitlets.HasTraits):
         Returns a list of (key, value) pairs for the
         traits with the role 'input_file'
         """
-        return [(k, v) for k, v in six.iteritems(self.traits())
-                if v.get_metadata('role') == 'output_file']
+        return [_trait_to_arg(v) for v in six.itervalues(self.traits())
+                if _sink_filter(v)]
 
     @property
     def title(self):
@@ -132,3 +132,34 @@ class ToolBase(traitlets.HasTraits):
         will be raised.
         """
         raise NotImplementedError()
+
+
+def _source_filter(trait_in):
+    """
+    Returns True if the trait looks like it is a DataSource, else False
+    """
+    if (isinstance(trait_in, traitlets.Instance) and
+          issubclass(trait_in.klass, data_base.BaseSource)):
+        return True
+    return False
+
+
+def _param_filter(trait_in):
+    """
+    Returns True if it looks like the trait is not a DataSource or DataSink
+    else False
+    """
+    if ((not isinstance(trait_in, traitlets.Instance)) or
+           (not issubclass(trait_in.klass, data_base.BaseDataHandler))):
+        return True
+    return False
+
+
+def _sink_filter(trait_in):
+    """
+    Return True if it looks like the trait is a DataSink, else False
+    """
+    if (isinstance(trait_in, traitlets.Instance) and
+          issubclass(trait_in.klass, data_base.BaseSink)):
+        return True
+    return False
