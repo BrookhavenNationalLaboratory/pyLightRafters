@@ -2,7 +2,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import six
-
+from six import string_types
 from collections import namedtuple, MutableMapping
 import h5py
 
@@ -141,9 +141,9 @@ class MD_dict(MutableMapping):
             if isinstance(tmp, md_value):
                 # TODO make message better
                 raise KeyError("trying to use a leaf node as a branch")
-        # TODO sixify
+
         # catch the case of a bare string
-        if isinstance(val, str):
+        if isinstance(val, string_types):
             # a value with out units
             tmp[key_split[-1]] = md_value(val, 'text')
             return
