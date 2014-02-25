@@ -3,7 +3,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import six
 
-from collections import namedtuple, defaultdict, MutableMapping
+from collections import namedtuple, MutableMapping
 import h5py
 
 md_value = namedtuple("md_value", ['value', 'units'])
@@ -39,22 +39,22 @@ def _hdf_write_helper(group, md, overwrite=False):
         else:
             # TODO re-use existing groups
             ng = group.require_group(k)
-            _hdf_write_helper(ng, v)
+            _hdf_write_helper(ng, v._dict)
 
 
 def _hdf_read_helper(group, md_dict):
     """
-    A recursive reader function to exract meta-data from a DateExchange group.
+    A recursive reader function to extract meta-data from a DateExchange group.
 
-    This operates on the input _inplace_.
+    This operates on the input _in place_.
 
     Parameters
     ----------
     group : `h5py.Group`
         a valid and open group to extract md from
 
-    md_dict : dict
-       the dict to load the data into
+    md_dict : `MD_dict`
+       the `MD_dict` to load the data into
     """
     for k in group.keys():
         print(k)
@@ -66,9 +66,9 @@ def _hdf_read_helper(group, md_dict):
                 units = None
             md_dict[k] = md_value(obj[...], units)
         elif isinstance(obj, h5py.Group):
+            md_dict._dict[k] = MD_dict()
             _hdf_read_helper(obj, md_dict[k])
-        else:
-            print('yarg')
+        # else: all objects in an hdf file should be groups or data sets
 
 
 def _iter_helper(path_list, split, md_dict):
@@ -214,5 +214,5 @@ class MD_dict(MutableMapping):
             An open and valid group
         """
         self = cls()
-        _hdf_read_helper(group, self._dict)
+        _hdf_read_helper(group, self)
         return self
