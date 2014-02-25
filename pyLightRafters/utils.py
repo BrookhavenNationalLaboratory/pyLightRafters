@@ -79,7 +79,7 @@ def _iter_helper(path_list, split, md_dict):
         if isinstance(v, md_value):
             yield split.join(path_list + [k])
         else:
-            for inner_v in _iter_helper(path_list + [k], split, v):
+            for inner_v in _iter_helper(path_list + [k], split, v._dict):
                 yield inner_v
 
 
