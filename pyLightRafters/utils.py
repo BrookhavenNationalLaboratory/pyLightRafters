@@ -142,11 +142,16 @@ class MD_dict(MutableMapping):
                 # TODO make message better
                 raise KeyError("trying to use a leaf node as a branch")
 
+        # if passed in an md_value, set it and return
+        if isinstance(val, md_value):
+            tmp[key_split[-1]] = val
+            return
         # catch the case of a bare string
-        if isinstance(val, string_types):
+        elif isinstance(val, string_types):
             # a value with out units
             tmp[key_split[-1]] = md_value(val, 'text')
             return
+        # not something easy, try to guess what to do instead
         try:
             # if the second element is a string or None, cast to named tuple
             if isinstance(val[1], str) or val[1] is None:
