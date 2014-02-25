@@ -57,14 +57,19 @@ def _hdf_read_helper(group, md_dict):
        the `MD_dict` to load the data into
     """
     for k in group.keys():
-        print(k)
         obj = group[k]
         if isinstance(obj, h5py.Dataset):
             if 'units' in obj.attrs:
                 units = obj.attrs['units']
             else:
                 units = None
-            md_dict[k] = md_value(obj[...], units)
+            val = obj[...]
+            # if we have a scalar array, convert back to base python type
+            if val.ndim == 0:
+                md_dict[k] = md_value(val.item(), units)
+            # other wise just pass it through
+            else:
+                md_dict[k] = md_value(val, units)
         elif isinstance(obj, h5py.Group):
             md_dict._dict[k] = MD_dict()
             _hdf_read_helper(obj, md_dict[k])
