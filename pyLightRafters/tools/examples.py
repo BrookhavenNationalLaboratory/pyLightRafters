@@ -33,9 +33,9 @@ class NormalizeDist(ToolBase):
         self.input_dist.activate()
         self.output_dist.activate()
         # grab data from input
-        tmp_val = np.array(self.input_dist.read_values())
+        tmp_val = np.array(self.input_dist.read_values(), dtype='float')
         # scale data
-        tmp_val /= self.norm_val / np.sum(tmp_val)
+        tmp_val *= self.norm_val / np.sum(tmp_val)
         # get the edges
         edges = self.input_dist.read_edges()
 
