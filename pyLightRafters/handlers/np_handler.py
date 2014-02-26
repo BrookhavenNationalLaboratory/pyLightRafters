@@ -43,7 +43,7 @@ class np_dist_source(DistributionSource):
         # distribution stuff
         if len(edges) == len(vals):
             self._right = False
-        elif (len(edges) + 1)  == len(vals):
+        elif (len(edges) - 1)  == len(vals):
             self._right = True
         else:
             raise ValueError("the length of `edges` must be equal to " +
