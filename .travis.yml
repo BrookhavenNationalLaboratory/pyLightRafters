@@ -8,7 +8,7 @@ python:
 
 install:
   - sudo apt-get update && sudo apt-get -qq install libhdf5-serial-dev
-  - pip install nose numpy six cython
+  - pip install nose numpy six cython IPython
   - pip install h5py
   - python setup.py install
 
