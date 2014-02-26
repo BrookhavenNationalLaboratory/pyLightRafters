@@ -8,7 +8,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import six
-
+import hashlib
 import IPython.utils.traitlets as traitlets
 from . import args_base
 from . import data_base
@@ -132,6 +132,20 @@ class ToolBase(traitlets.HasTraits):
         will be raised.
         """
         raise NotImplementedError()
+
+    def phash(self):
+        """
+        returns as SHA-1 hash of the tool name + the current values of the
+        parameters (excluding input and output data handlers)
+        """
+        traits = [v for v in six.itervalues(self.traits())
+                        if _param_filter(v)]
+        traits.sort(key=lambda v: v.name)
+        m = hashlib.sha1()
+        for v in traits:
+            m.update(v.name)
+            m.update(str(getattr(self, v.name)))
+        return m.hexdigest()
 
 
 def _source_filter(trait_in):
