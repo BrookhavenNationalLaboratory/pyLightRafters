@@ -7,6 +7,7 @@ between the front-end frame work and the back-end tools.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import sys
 import six
 import hashlib
 from collections import namedtuple
@@ -36,8 +37,55 @@ class ToolBase(traitlets.HasTraits):
     accumulate inputs/parameters, validate the inputs provide tools for
     introspection, and run the tool when called.
     """
+    # class level-functions
     @classmethod
-    def class_args(cls):
+    def tool_id(cls):
+        """
+        Return the 'id' of the tool.
+
+        Returns
+        -------
+        id : str
+           The id of the tool
+        """
+
+        return cls.__class__.__name__.lower()
+
+    @classmethod
+    def tool_params(cls):
+        all_traits = cls.class_traits()
+        return tuple(_trait_to_arg(t)
+                     for t in six.itervalues(all_traits)
+                       if _param_filter(t))
+
+    @classmethod
+    def tool_sources(cls):
+        all_traits = cls.class_traits()
+        return tuple(_trait_to_arg(t) for t in six.itervalues(all_traits)
+                        if _source_filter(t))
+
+    @classmethod
+    def tool_sinks(cls):
+        all_traits = cls.class_traits()
+        return tuple(_trait_to_arg(t) for t in six.itervalues(all_traits)
+                        if _sink_filter(t))
+
+    @classmethod
+    def tool_title(cls):
+        """
+        Returns the title of the Tool.  Defaults to using the class name.
+        """
+        return cls.__class__.__name__
+
+    @classmethod
+    def tool_tutorial(cls):
+        ret_val = cls.__doc__
+        if ret_val is None:
+            ret_val = ''
+        return _pep257_trim(ret_val)
+
+    @classmethod
+    def tool_args(cls):
         """
         Returns a `ToolArgs` of tuples of ArgSpec objects
         for this tool.
@@ -50,75 +98,38 @@ class ToolBase(traitlets.HasTraits):
         # get the traits
         all_traits = cls.class_traits()
         # filter three times, sadly don't see a better way to do this
-        params = tuple(_trait_to_arg(t) for t in six.itervalues(all_traits)
-                       if _param_filter(t))
-        sources = tuple(_trait_to_arg(t) for t in six.itervalues(all_traits)
-                        if _source_filter(t))
+        params = cls.tool_params()
+        sources = cls.tool_sources()
         sinks = tuple(_trait_to_arg(t) for t in six.itervalues(all_traits)
                       if _sink_filter(t))
         # return the information
         return ToolArgs(params, sources, sinks)
 
+    # instance level functions
+    # convince functions that just call class-level versions
     @property
     def id(self):
-        """
-        Return the 'id' of the tool.
-
-        Returns
-        -------
-        id : str
-           The id of the tool
-        """
-        return self.__class__.__name__.lower()
+        return type(self).tool_id()
 
     @property
     def params(self):
-        """
-        Returns a list of (key, value) pairs for the
-        traits with the role 'param'
-        """
-        return [_trait_to_arg(v) for v in six.itervalues(self.traits())
-                if _param_filter(v)]
+        return type(self).tool_params()
 
     @property
-    def input_files(self):
-        """
-        Returns a list of (key, value) pairs for the
-        traits with the role 'input_file'
-        """
-        return [_trait_to_arg(v) for v in six.itervalues(self.traits())
-                if _source_filter(v)]
+    def sources(self):
+        return type(self).tool_sources()
 
     @property
-    def output_files(self):
-        """
-        Returns a list of (key, value) pairs for the
-        traits with the role 'input_file'
-        """
-        return [_trait_to_arg(v) for v in six.itervalues(self.traits())
-                if _sink_filter(v)]
+    def sinks(self):
+        return type(self).tool_sinks()
 
     @property
     def title(self):
-        """
-        Returns the title of the Tool.  Defaults to using the class name.
-        """
-        return self.__class__.__name__
+        return type(self).tool_title()
 
     @property
     def tutorial(self):
-        """
-        Return the tutorial, a short description of what the tool is.
-        """
-        raise NotImplementedError()
-
-    def run(self):
-        """
-        Runs the tool on the data using the set parameters.  Takes no
-        arguments and returns no values.  All non-handled exceptions
-        will be raised.
-        """
-        raise NotImplementedError()
+        return type(self).tool_tutorial()
 
     def phash(self):
         """
@@ -133,6 +144,14 @@ class ToolBase(traitlets.HasTraits):
             m.update(v.name)
             m.update(str(getattr(self, v.name)))
         return m.hexdigest()
+
+    def run(self):
+        """
+        Runs the tool on the data using the set parameters.  Takes no
+        arguments and returns no values.  All non-handled exceptions
+        will be raised.
+        """
+        raise NotImplementedError()
 
 
 def _source_filter(trait_in):
@@ -197,3 +216,29 @@ def _get_label(key, trait):
     if label:
         return label
     return key
+
+def _pep257_trim(docstring):
+    # lifted from http://legacy.python.org/dev/peps/pep-0257/
+    if not docstring:
+        return ''
+    # Convert tabs to spaces (following the normal Python rules)
+    # and split into a list of lines:
+    lines = docstring.expandtabs().splitlines()
+    # Determine minimum indentation (first line doesn't count):
+    indent = sys.maxint
+    for line in lines[1:]:
+        stripped = line.lstrip()
+        if stripped:
+            indent = min(indent, len(line) - len(stripped))
+    # Remove indentation (first line is special):
+    trimmed = [lines[0].strip()]
+    if indent < sys.maxint:
+        for line in lines[1:]:
+            trimmed.append(line[indent:].rstrip())
+    # Strip off trailing and leading blank lines:
+    while trimmed and not trimmed[-1]:
+        trimmed.pop()
+    while trimmed and not trimmed[0]:
+        trimmed.pop(0)
+    # Return a single string:
+    return '\n'.join(trimmed)
