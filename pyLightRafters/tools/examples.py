@@ -10,6 +10,14 @@ import IPython.utils.traitlets as traitlets
 
 
 class NormalizeDist(ToolBase):
+    """
+    A simple example Tool.
+
+    This tool re-scales the input distribution so that the sum
+    is equal to `norm_val`.
+
+
+    """
     norm_val = traitlets.Float(1, tool_tip='new sum', label='norm')
     input_dist = traitlets.Instance(klass=DistributionSource,
                                 tool_tip='input distribution',
@@ -17,11 +25,6 @@ class NormalizeDist(ToolBase):
     output_dist = traitlets.Instance(klass=DistributionSink,
                                 tool_tip='output distribution',
                                 label='output')
-
-    @property
-    def tutorial(self):
-        return ("Normalizes the distorbution so " +
-                "that the sum is equal to `norm_val`")
 
     def run(self):
         # sanity checks

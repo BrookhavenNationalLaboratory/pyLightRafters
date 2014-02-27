@@ -53,6 +53,12 @@ class ToolBase(traitlets.HasTraits):
 
     @classmethod
     def tool_params(cls):
+        """
+        Returns the parameters the tool requires
+
+        Returns
+        -------
+        """
         all_traits = cls.class_traits()
         return tuple(_trait_to_arg(t)
                      for t in six.itervalues(all_traits)
@@ -60,12 +66,28 @@ class ToolBase(traitlets.HasTraits):
 
     @classmethod
     def tool_sources(cls):
+        """
+        Returns the data sources the tool requires.
+
+        Returns
+        -------
+        sources : tuple
+            Tuple of ArgSpec objects representing the data sources
+        """
         all_traits = cls.class_traits()
         return tuple(_trait_to_arg(t) for t in six.itervalues(all_traits)
                         if _source_filter(t))
 
     @classmethod
     def tool_sinks(cls):
+        """
+        Returns the data sinks the tool requires.
+
+        Returns
+        -------
+        sinks : tuple
+            Tuple of ArgSpec objects representing the data sinks
+        """
         all_traits = cls.class_traits()
         return tuple(_trait_to_arg(t) for t in six.itervalues(all_traits)
                         if _sink_filter(t))
@@ -74,11 +96,25 @@ class ToolBase(traitlets.HasTraits):
     def tool_title(cls):
         """
         Returns the title of the Tool.  Defaults to using the class name.
+
+        Returns
+        -------
+        title : str
+           Title of tool
         """
         return cls.__class__.__name__
 
     @classmethod
     def tool_tutorial(cls):
+        """
+        Returns a long description of the tool and it's use.  By default
+        returns the de-dented doc-string.
+
+        Returns
+        -------
+        tutorial : str
+            Tutorial for tool.
+        """
         ret_val = cls.__doc__
         if ret_val is None:
             ret_val = ''
@@ -154,23 +190,27 @@ class ToolBase(traitlets.HasTraits):
         raise NotImplementedError()
 
 
-def _source_filter(trait_in):
-    """
-    Returns True if the trait looks like it is a DataSource, else False
-    """
-    if (isinstance(trait_in, traitlets.Instance) and
-          issubclass(trait_in.klass, data_base.BaseSource)):
-        return True
-    return False
-
-
 def _param_filter(trait_in):
     """
     Returns True if it looks like the trait is not a DataSource or DataSink
     else False
     """
+    if not isinstance(trait_in, traitlets.TraitType):
+            raise TypeError("input is not a sub-class of TraitType")
     if ((not isinstance(trait_in, traitlets.Instance)) or
            (not issubclass(trait_in.klass, data_base.BaseDataHandler))):
+        return True
+    return False
+
+
+def _source_filter(trait_in):
+    """
+    Returns True if the trait looks like it is a DataSource, else False
+    """
+    if not isinstance(trait_in, traitlets.TraitType):
+        raise TypeError("input is not a sub-class of TraitType")
+    if (isinstance(trait_in, traitlets.Instance) and
+          issubclass(trait_in.klass, data_base.BaseSource)):
         return True
     return False
 
@@ -179,6 +219,8 @@ def _sink_filter(trait_in):
     """
     Return True if it looks like the trait is a DataSink, else False
     """
+    if not isinstance(trait_in, traitlets.TraitType):
+            raise TypeError("input is not a sub-class of TraitType")
     if (isinstance(trait_in, traitlets.Instance) and
           issubclass(trait_in.klass, data_base.BaseSink)):
         return True
