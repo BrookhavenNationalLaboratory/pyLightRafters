@@ -9,56 +9,21 @@ from __future__ import (absolute_import, division, print_function,
 
 import six
 import hashlib
+from collections import namedtuple
+
 import IPython.utils.traitlets as traitlets
+
+from . import traitlets as plr_traitlets
 from . import args_base
 from . import data_base
 
-## a set of custom triatlets
-class IntRange(traitlets.Int):
-    """
-    An integer traitlet with a limited range.
-    """
-    _err_str = ("Value must be between {_min} and {_max}.  " +
-                "The value {val} was given.")
 
-    def __init__(self, min_max, **kwargs):
-        if min_max is None:
-            raise ValueError("min_max must be non-None")
-        self._min, self._max = min_max
-        traitlets.Int.__init__(self, self._min, **kwargs)
+def list_of_tools():
+    tool_list = []
+    _all_subclasses(ToolBase, tool_list)
+    return tool_list
 
-    def validate(self, obj, value):
-        # call base validate, either an Int or dead
-        value = traitlets.Int.validate(self, obj, value)
-        if value < self._min or value > self._max:
-            raise traitlets.TraitError(self._err_str.format(
-                _min=self._min, _max=self._max, val=value))
-        return value
-
-
-def _trait_mapper(trait_in):
-    if isinstance(trait_in, traitlets.Int):
-        return int
-    elif isinstance(trait_in, traitlets.Float):
-        return float
-    elif isinstance(trait_in, traitlets.Instance):
-        return trait_in.klass
-    else:
-        raise ValueError("Can not map trait to underlying type")
-
-
-def _trait_to_arg(trait_in):
-    t_dtype = _trait_mapper(trait_in)
-    return args_base.ArgSpec(t_dtype, trait_in.name,
-                             trait_in.get_metadata('label'),
-                             trait_in.get_metadata('tooltip'))
-
-
-def _get_label(key, trait):
-    label = trait.get_metadata('label')
-    if label:
-        return label
-    return key
+ToolArgs = namedtuple('ToolArgs', ['params', 'sources', 'sinks'])
 
 
 # classes for defining tools
@@ -71,6 +36,28 @@ class ToolBase(traitlets.HasTraits):
     accumulate inputs/parameters, validate the inputs provide tools for
     introspection, and run the tool when called.
     """
+    @classmethod
+    def class_args(cls):
+        """
+        Returns a `ToolArgs` of tuples of ArgSpec objects
+        for this tool.
+
+        Returns
+        -------
+        class_args : ToolArgs (namedtuple)
+            Each entry is a tuple ArgSpec objects.
+        """
+        # get the traits
+        all_traits = cls.class_traits()
+        # filter three times, sadly don't see a better way to do this
+        params = tuple(_trait_to_arg(t) for t in six.itervalues(all_traits)
+                       if _param_filter(t))
+        sources = tuple(_trait_to_arg(t) for t in six.itervalues(all_traits)
+                        if _source_filter(t))
+        sinks = tuple(_trait_to_arg(t) for t in six.itervalues(all_traits)
+                      if _sink_filter(t))
+        # return the information
+        return ToolArgs(params, sources, sinks)
 
     @property
     def id(self):
@@ -177,3 +164,36 @@ def _sink_filter(trait_in):
           issubclass(trait_in.klass, data_base.BaseSink)):
         return True
     return False
+
+
+def _all_subclasses(in_c, sc_lst):
+    t = in_c.__subclasses__()
+    if len(t) > 0:
+        sc_lst.extend(t)
+        for _sc in t:
+            _all_subclasses(_sc, sc_lst)
+
+
+def _trait_mapper(trait_in):
+    if isinstance(trait_in, traitlets.Int):
+        return int
+    elif isinstance(trait_in, traitlets.Float):
+        return float
+    elif isinstance(trait_in, traitlets.Instance):
+        return trait_in.klass
+    else:
+        raise ValueError("Can not map trait to underlying type")
+
+
+def _trait_to_arg(trait_in):
+    t_dtype = _trait_mapper(trait_in)
+    return args_base.ArgSpec(t_dtype, trait_in.name,
+                             trait_in.get_metadata('label'),
+                             trait_in.get_metadata('tooltip'))
+
+
+def _get_label(key, trait):
+    label = trait.get_metadata('label')
+    if label:
+        return label
+    return key
