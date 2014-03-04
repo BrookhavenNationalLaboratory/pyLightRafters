@@ -49,7 +49,7 @@ class ToolBase(traitlets.HasTraits):
            The id of the tool
         """
 
-        return cls.__class__.__name__.lower()
+        return cls.__name__.lower()
 
     @classmethod
     def tool_params(cls):
@@ -102,7 +102,7 @@ class ToolBase(traitlets.HasTraits):
         title : str
            Title of tool
         """
-        return cls.__class__.__name__
+        return cls.__name__
 
     @classmethod
     def tool_tutorial(cls):
@@ -131,13 +131,10 @@ class ToolBase(traitlets.HasTraits):
         class_args : ToolArgs (namedtuple)
             Each entry is a tuple ArgSpec objects.
         """
-        # get the traits
-        all_traits = cls.class_traits()
         # filter three times, sadly don't see a better way to do this
         params = cls.tool_params()
         sources = cls.tool_sources()
-        sinks = tuple(_trait_to_arg(t) for t in six.itervalues(all_traits)
-                      if _sink_filter(t))
+        sinks = cls.tool_sinks()
         # return the information
         return ToolArgs(params, sources, sinks)
 
