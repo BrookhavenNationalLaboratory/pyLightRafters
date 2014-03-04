@@ -256,6 +256,7 @@ def _get_label(key, trait):
         return label
     return key
 
+
 def _pep257_trim(docstring):
     # lifted from http://legacy.python.org/dev/peps/pep-0257/
     if not docstring:
