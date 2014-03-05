@@ -36,3 +36,7 @@ nosetests.xml
 *.so
 *~
 *.swp
+
+# binary data files
+*.h5
+*.hdf
