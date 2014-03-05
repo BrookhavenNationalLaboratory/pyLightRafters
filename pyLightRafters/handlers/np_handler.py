@@ -7,7 +7,7 @@ import six
 
 import numpy as np
 
-from ..data_base import DistributionSource, DistributionSink
+from ..handler_base import DistributionSource, DistributionSink
 
 
 class np_dist_source(DistributionSource):

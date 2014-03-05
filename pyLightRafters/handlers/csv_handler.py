@@ -3,7 +3,7 @@ A set of sources and sinks for handling
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-from ..data_base import DistributionSource, FileHandler, DistributionSink
+from ..handler_base import DistributionSource, FileHandler, DistributionSink
 import six
 from six.moves import zip
 import csv

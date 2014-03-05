@@ -4,7 +4,7 @@ import six
 import numpy as np
 
 from ..tools_base import ToolBase
-from ..data_base import DistributionSource, DistributionSink
+from ..handler_base import DistributionSource, DistributionSink
 
 import IPython.utils.traitlets as traitlets
 

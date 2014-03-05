@@ -16,7 +16,7 @@ import IPython.utils.traitlets as traitlets
 
 from . import traitlets as plr_traitlets
 from . import args_base
-from . import data_base
+from . import handler_base
 
 from .utils import all_subclasses as _all_subclasses
 
@@ -197,7 +197,7 @@ def _param_filter(trait_in):
     if not isinstance(trait_in, traitlets.TraitType):
             raise TypeError("input is not a sub-class of TraitType")
     if ((not isinstance(trait_in, traitlets.Instance)) or
-           (not issubclass(trait_in.klass, data_base.BaseDataHandler))):
+           (not issubclass(trait_in.klass, handler_base.BaseDataHandler))):
         return True
     return False
 
@@ -209,7 +209,7 @@ def _source_filter(trait_in):
     if not isinstance(trait_in, traitlets.TraitType):
         raise TypeError("input is not a sub-class of TraitType")
     if (isinstance(trait_in, traitlets.Instance) and
-          issubclass(trait_in.klass, data_base.BaseSource)):
+          issubclass(trait_in.klass, handler_base.BaseSource)):
         return True
     return False
 
@@ -221,7 +221,7 @@ def _sink_filter(trait_in):
     if not isinstance(trait_in, traitlets.TraitType):
             raise TypeError("input is not a sub-class of TraitType")
     if (isinstance(trait_in, traitlets.Instance) and
-          issubclass(trait_in.klass, data_base.BaseSink)):
+          issubclass(trait_in.klass, handler_base.BaseSink)):
         return True
     return False
 
