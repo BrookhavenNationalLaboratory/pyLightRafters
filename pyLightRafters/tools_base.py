@@ -18,6 +18,8 @@ from . import traitlets as plr_traitlets
 from . import args_base
 from . import data_base
 
+from .utils import all_subclasses as _all_subclasses
+
 
 def list_of_tools():
     tool_list = []
@@ -222,14 +224,6 @@ def _sink_filter(trait_in):
           issubclass(trait_in.klass, data_base.BaseSink)):
         return True
     return False
-
-
-def _all_subclasses(in_c, sc_lst):
-    t = in_c.__subclasses__()
-    if len(t) > 0:
-        sc_lst.extend(t)
-        for _sc in t:
-            _all_subclasses(_sc, sc_lst)
 
 
 def _trait_mapper(trait_in):

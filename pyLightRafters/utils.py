@@ -227,3 +227,11 @@ class MD_dict(MutableMapping):
         self = cls()
         _hdf_read_helper(group, self)
         return self
+
+
+def all_subclasses(in_c, sc_lst):
+    t = in_c.__subclasses__()
+    if len(t) > 0:
+        sc_lst.extend(t)
+        for _sc in t:
+            all_subclasses(_sc, sc_lst)
