@@ -9,6 +9,40 @@ from __future__ import (absolute_import, division, print_function,
 import six
 from six import with_metaclass
 from abc import ABCMeta, abstractmethod, abstractproperty
+from .utils import all_subclasses as _all_subclasses
+
+
+def available_handler_list(base_handler, filter_list=None):
+    """
+    Returns a list of handlers which are sub-classes of `base_handler`.
+
+    The list is then filtered to include only classes which are sub-classes
+    of any of the classes in `filter_list.
+
+    The thought is to use this something like
+
+    >>> d_sinks = available_handler_list(DistributionSink)
+
+    returns a list of all of the distribution sink handlers and
+
+    >>> d_file_sinks = available_handler_list(DistributionSink, [FileHandler,])
+
+    Parameters
+    ----------
+    base_handler : type
+        The base-class to find sub-classes of
+
+    filter_list : list of type
+        Only return handlers which are a subclass of any of the
+        elements in filter_list (OR logic).
+    """
+    # grab the sub-classes
+    h_lst = []
+    # yay recursion
+    _all_subclasses(base_handler, h_lst)
+    # list comprehension logic
+    return [h for h in h_lst if filter_list is None or
+            any(issubclass(h, filt) for filt in filter_list)]
 
 
 class BaseDataHandler(with_metaclass(ABCMeta, object)):
