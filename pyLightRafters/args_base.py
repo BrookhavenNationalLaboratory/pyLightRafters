@@ -73,7 +73,7 @@ class ArgSpec(object):
         return self._name
 
     @property
-    def tool_tip(self):
+    def tooltip(self):
         """
         A longer description of the argument.
 

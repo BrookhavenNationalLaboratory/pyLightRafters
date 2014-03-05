@@ -18,12 +18,12 @@ class NormalizeDist(ToolBase):
 
 
     """
-    norm_val = traitlets.Float(1, tool_tip='new sum', label='norm')
+    norm_val = traitlets.Float(1, tooltip='new sum', label='norm')
     input_dist = traitlets.Instance(klass=DistributionSource,
-                                tool_tip='input distribution',
+                                tooltip='input distribution',
                                 label='input')
     output_dist = traitlets.Instance(klass=DistributionSink,
-                                tool_tip='output distribution',
+                                tooltip='output distribution',
                                 label='output')
 
     def run(self):
