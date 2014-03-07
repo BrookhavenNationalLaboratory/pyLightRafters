@@ -189,6 +189,11 @@ class DistributionSink(BaseSink):
 
 
 class FileHandler(with_metaclass(ABCMeta, object)):
+
+    @classmethod
+    def handler_extenstions(cls):
+        return cls._extension_filters
+
     @abstractproperty
     def backing_file(self):
         """
@@ -196,9 +201,9 @@ class FileHandler(with_metaclass(ABCMeta, object)):
         """
         pass
 
-    @abstractproperty
+    @property
     def extension_filters(self):
         """
         Return a list of file extension
         """
-        pass
+        return type(self).handler_extenstions()
