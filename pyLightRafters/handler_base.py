@@ -7,6 +7,8 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import six
+import cPickle as pickle
+
 from six import with_metaclass
 from abc import ABCMeta, abstractmethod, abstractproperty
 from .utils import all_subclasses as _all_subclasses
@@ -98,6 +100,25 @@ class BaseDataHandler(with_metaclass(ABCMeta, object)):
             If the source/sink is 'active'
         """
         pass
+
+    def __getstate__(self):
+        """
+        Return metadata dict
+
+        Part of over-riding default pickle/unpickle behavior
+
+        Raise exception if trying to pickle and active handler
+        """
+        if self.active:
+            raise pickle.PicklingError("can not pickle active handler")
+        return self.metadata
+
+    def __setstate__(self, in_dict):
+        """
+        Over ride the default __setstate__ behavior and force __init__
+        to be called
+        """
+        self.__init__(**in_dict)
 
 
 class BaseSource(BaseDataHandler):
