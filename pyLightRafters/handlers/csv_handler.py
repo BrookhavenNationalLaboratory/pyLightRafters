@@ -15,6 +15,7 @@ class csv_dist_source(DistributionSource, FileHandler):
     A source for reading distribution data out of csv (or tab or what ever)
     separated files.
     """
+    _extension_filters = ['csv', 'txt']
 
     # local stuff
     def __init__(self, fname, right=False, **kwargs):
@@ -63,10 +64,6 @@ class csv_dist_source(DistributionSource, FileHandler):
     def backing_file(self):
         return self._fname
 
-    @property
-    def extension_filters(self):
-        return ['csv', 'txt']
-
     # distribution methods
     def read_values(self):
         if not self.active:
@@ -96,6 +93,8 @@ class csv_dist_sink(DistributionSink, FileHandler):
     """
     A sink for writing distribution data to a csv file.
     """
+    _extension_filters = ['csv', 'txt']
+
     def __init__(self, fname, right=False, **kwargs):
         # base stuff
         self._active = False
@@ -121,10 +120,6 @@ class csv_dist_sink(DistributionSink, FileHandler):
     @property
     def backing_file(self):
         return self._fname
-
-    @property
-    def extension_filters(self):
-        return ['csv', 'txt']
 
     def write_dist(self, edges, vals, right_edge=False):
         if right_edge:
