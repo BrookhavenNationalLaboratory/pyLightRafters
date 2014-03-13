@@ -188,6 +188,18 @@ class ToolBase(traitlets.HasTraits):
         """
         raise NotImplementedError()
 
+    def __call__(self):
+        """
+        Make instances callable.  Just calls `run`
+
+        This is so that ToolBase instances can be shipped off via pickle
+        to `apply`.  It turns out that bound instances are not pickable
+        (see http://stackoverflow.com/q/1816958/380231).  A lazy solution
+        which works in this case is to make the instance callable and then
+        just pass the object over the wire.
+        """
+        return self.run()
+
 
 def _param_filter(trait_in):
     """
