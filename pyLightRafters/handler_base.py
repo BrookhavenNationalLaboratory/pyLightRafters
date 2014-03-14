@@ -64,6 +64,9 @@ class BaseDataHandler(with_metaclass(ABCMeta, object)):
     The consumers of these objects should take care of calling
     `activate` and `deactivate`.
     """
+    @classmethod
+    def id(cls):
+        return cls.__name__.lower()
 
     @abstractmethod
     def activate(self):
