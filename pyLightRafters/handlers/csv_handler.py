@@ -18,7 +18,7 @@ class csv_dist_source(DistributionSource, FileHandler):
     _extension_filters = ['csv', 'txt']
 
     # local stuff
-    def __init__(self, fname, right=False, **kwargs):
+    def __init__(self, fname, right=False, csv_kwargs=None):
         """
         kwargs are passed to `csv.reader`
 
@@ -34,7 +34,9 @@ class csv_dist_source(DistributionSource, FileHandler):
         # distribution stuff
         self._right = right
         # csv stuff
-        self._kwargs = kwargs
+        if csv_kwargs is None:
+            csv_kwargs = {}
+        self._kwargs = csv_kwargs
         # caching
         self._edges = None
         self._vals = None
@@ -54,6 +56,12 @@ class csv_dist_source(DistributionSource, FileHandler):
         self._edges = edges
         self._vals = vals
         self._active = True
+
+    def _clear_cache(self):
+        if hasattr(self, '_edges'):
+            del self._edges
+        if hasattr(self, '_vals'):
+            del self._vals
 
     def deactivate(self):
         self._clear_cache()
@@ -86,7 +94,7 @@ class csv_dist_source(DistributionSource, FileHandler):
     def metadata(self):
         return {'fname': self._fname,
                 'right': self._right,
-                'kwargs': self._kwargs}
+                'csv_kwargs': self._kwargs}
 
 
 class csv_dist_sink(DistributionSink, FileHandler):
@@ -95,7 +103,7 @@ class csv_dist_sink(DistributionSink, FileHandler):
     """
     _extension_filters = ['csv', 'txt']
 
-    def __init__(self, fname, right=False, **kwargs):
+    def __init__(self, fname, right=False, csv_kwargs=None):
         # base stuff
         self._active = False
         # file stuff
@@ -103,7 +111,9 @@ class csv_dist_sink(DistributionSink, FileHandler):
         # distribution stuff
         self._right = right
         # csv stuff
-        self._kwargs = kwargs
+        if csv_kwargs is None:
+            csv_kwargs = {}
+        self._kwargs = csv_kwargs
 
     # base class parts
     @property
@@ -138,4 +148,4 @@ class csv_dist_sink(DistributionSink, FileHandler):
     def metadata(self):
         return {'fname': self._fname,
                 'right': self._right,
-                'kwargs': self._kwargs}
+                'csv_kwargs': self._kwargs}
