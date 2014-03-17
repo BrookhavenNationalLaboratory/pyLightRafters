@@ -7,7 +7,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import six
-import cPickle as pickle
+from six.moves import cPickle as pickle
 
 from six import with_metaclass
 from abc import ABCMeta, abstractmethod, abstractproperty
