@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import six
@@ -48,3 +49,13 @@ class NormalizeDist(ToolBase):
         # shut down the i/o
         self.input_dist.deactivate()
         self.output_dist.deactivate()
+
+
+class HelloWorld(ToolBase):
+    """
+    A parameter-less tool that just says hi
+    """
+    def run(self):
+        print("Hello World")
+        print("שלום עולם")
+        print("你好世界")
