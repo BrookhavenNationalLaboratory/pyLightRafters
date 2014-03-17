@@ -13,9 +13,9 @@ interface for calling image analysis `Tools`.
 
 class family | purpose | module
 ------------ | ------- | ------
-data handlers | to abstract away the backing method of data storage | `pylight_tools.data_base`
-`ArgSpec` | container for all the meta-data about arguments | `pylight_tools.args_base`
-`ToolBase` | container for all of the meta-data + code to run a given computation | `pylight_tools.tools_base`
+data handlers | to abstract away the backing method of data storage | `pyLightRafters.handler_base`
+`ArgSpec` | container for all the meta-data about arguments | `pyLightRafters.args_base`
+`ToolBase` | container for all of the meta-data + code to run a given computation | `pyLightRafters.tools_base`
 
 Handlers
 --------
