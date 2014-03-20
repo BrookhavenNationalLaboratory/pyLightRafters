@@ -236,3 +236,38 @@ class FileHandler(with_metaclass(ABCMeta, object)):
         Return a list of file extension
         """
         return type(self).handler_extensions()
+
+
+class OpaqueFile(BaseSink, FileHandler):
+    """
+    That is an excessively complicated way to pass a path into
+    a tool.
+    """
+    def __init__(self, fname):
+        self._fname = fname
+        self._active = False
+
+    # fileHandler stuff
+    @property
+    def backing_file(self):
+        return self._fname
+
+    # base stuff
+    def activate(self):
+        self._active = True
+
+    def deactivate(self):
+        self._active = False
+
+    @property
+    def active(self):
+        return self._active
+
+    @property
+    def metadata(self):
+        return {'fname': self._fname}
+
+
+class OpaqueFigure(OpaqueFile):
+    _extension_filters = (set(('png', 'pdf', 'svg', 'jpg')) |
+                            OpaqueFile.handler_extensions())
