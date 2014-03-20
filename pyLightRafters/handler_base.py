@@ -145,7 +145,21 @@ class BaseSink(BaseDataHandler):
     This layer exists so that the `isinstace(obj, BaseSink)` will
     work.
     """
-    pass
+    def make_source(self, source_klass=None):
+        """
+        Returns a source object which will access the data written
+        into this sink object.  The optional kwarg `source_klass`
+        provides a hint as to what type of source to create (this
+        will be relevant/useful with we end up with sources that
+        step through the same data in different ways (exposures vs
+        sinograms) or maybe not)
+
+        Parameters
+        ----------
+        source_klass : None or type
+            if not-None, what class to use to build the source object
+        """
+        raise NotImplementedError('will be made abstract method')
 
 
 class DistributionSource(BaseSource):
