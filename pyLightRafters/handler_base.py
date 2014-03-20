@@ -191,6 +191,58 @@ class DistributionSource(BaseSource):
         pass
 
 
+class ImageSource(BaseSource):
+    """
+    An ABC for the interface to read in images
+
+    Images are N-D arrays of any type.
+
+    All handlers are assumed to wrap a sequence of images, but may be
+    length 1.
+
+    The first pass will only have a single access function
+    'get_frame` which will return what ever the natural 'frame'
+    is.  More specific sub-classes should provide a way to more
+    sensibly slice volumes (ex iterate over sinograms or projections).
+
+    Still up in the air on if we want to do this with a few class
+    with lots of functions or many classes with a few functions.
+    Leaning toward lots of simple classes
+    """
+    @abstractmethod
+    def get_frame(self, frame_num):
+        """
+        Returns what ever the sub-class thinks is 'frame'.
+
+        Parameters
+        ----------
+        frame_num : uint
+            The frame to extract
+        """
+        pass
+
+    @abstractmethod
+    def __len__(self):
+        """
+        Length is obligatory.
+        """
+        pass
+
+    @abstractmethod
+    def __getitem__(self, arg):
+        """
+        Defining __getitem__ is mandatory so that source[j] works
+        """
+        pass
+
+    @abstractmethod
+    def __iter__(self):
+        """
+        Defining __iter__ so source is iterable is mandatory
+        """
+        pass
+
+
 class DistributionSink(BaseSink):
     """
     An ABC for specifying the interface for writing distributions.
