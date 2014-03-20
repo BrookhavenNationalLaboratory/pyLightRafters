@@ -7,6 +7,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import six
+import inspect
 from six.moves import cPickle as pickle
 
 from six import with_metaclass
@@ -40,6 +41,9 @@ def available_handler_list(base_handler, filter_list=None):
     """
     # grab the sub-classes
     h_lst = []
+    # if base class is not abstract, keep it too
+    if not inspect.isabstract(base_handler):
+        h_lst.append(base_handler)
     # yay recursion
     _all_subclasses(base_handler, h_lst)
     # list comprehension logic
