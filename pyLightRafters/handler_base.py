@@ -217,9 +217,10 @@ class DistributionSink(BaseSink):
 
 
 class FileHandler(with_metaclass(ABCMeta, object)):
+    _extension_filters = set()
 
     @classmethod
-    def handler_extenstions(cls):
+    def handler_extensions(cls):
         return cls._extension_filters
 
     @abstractproperty
@@ -234,4 +235,4 @@ class FileHandler(with_metaclass(ABCMeta, object)):
         """
         Return a list of file extension
         """
-        return type(self).handler_extenstions()
+        return type(self).handler_extensions()
