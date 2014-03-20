@@ -13,6 +13,25 @@ from six.moves import cPickle as pickle
 from six import with_metaclass
 from abc import ABCMeta, abstractmethod, abstractproperty
 from .utils import all_subclasses as _all_subclasses
+from functools import wraps
+
+
+class RequireActive(Exception):
+    """
+    Exception sub-class to be raised when a function which
+    requires the handler to be active is called on an inactive
+    handler
+    """
+    pass
+
+
+class RequireInactive(Exception):
+    """
+    Exception sub-class to be raised when a function which
+    requires the handler to be inactive is called on an active
+    handler
+    """
+    pass
 
 
 def available_handler_list(base_handler, filter_list=None):
@@ -72,22 +91,35 @@ class BaseDataHandler(with_metaclass(ABCMeta, object)):
     def id(cls):
         return cls.__name__.lower()
 
-    @abstractmethod
+    def __init__(self):
+        self._active = False
+
     def activate(self):
         """
-        Set handler up to source/sink data.  This may be a no-op or
-        it may involve opening files/network connections.
-
-        Basically deferred initialization.
+        Sub-classes should extend this to set handler up to source/sink
+        data. This may be a no-op or it may involve opening files/network
+        connections. Basically deferred initialization.
         """
-        pass
+        self._active = True
 
-    @abstractmethod
     def deactivate(self):
         """
-        Tear down any non-picklable structures (ex, open files)
+        Sub-classes will need to extend this method to tear down any
+        non-picklable structures (ex, open files)
         """
-        pass
+
+        self._active = False
+
+    @property
+    def active(self):
+        """
+        Returns
+        -------
+        active : bool
+            If the source/sink is 'active'
+        """
+
+        return self._active
 
     @abstractproperty
     def metadata(self):
@@ -95,16 +127,6 @@ class BaseDataHandler(with_metaclass(ABCMeta, object)):
         This should return enough information to passed to
         cls.__init__(**obj.metadata) and get back a functionally
         identical version of the object.
-        """
-        pass
-
-    @abstractproperty
-    def active(self):
-        """
-        Returns
-        -------
-        active : bool
-            If the source/sink is 'active'
         """
         pass
 
@@ -126,6 +148,34 @@ class BaseDataHandler(with_metaclass(ABCMeta, object)):
         to be called
         """
         self.__init__(**in_dict)
+
+
+def require_active(fun):
+    """
+    A decorator to use on functions which require the handler to
+    be active
+    """
+    @wraps(fun)
+    def inner(self, *args, **kwargs):
+        if not self.active:
+            raise RequireActive("Handler must be active")
+        return fun(self, *args, **kwargs)
+
+    return inner
+
+
+def require_inactive(fun):
+    """
+    A decorator to use on functions which require the handler to
+    be active
+    """
+    @wraps(fun)
+    def inner(self, *args, **kwargs):
+        if self.active:
+            raise RequireInactive("Handler must be inactive")
+        return fun(self, *args, **kwargs)
+
+    return inner
 
 
 class BaseSource(BaseDataHandler):
