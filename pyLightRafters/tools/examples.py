@@ -5,7 +5,8 @@ import six
 import numpy as np
 
 from ..tools_base import ToolBase
-from ..handler_base import DistributionSource, DistributionSink
+from ..handler_base import (DistributionSource, DistributionSink,
+                            OpaqueFile)
 
 import IPython.utils.traitlets as traitlets
 
@@ -49,6 +50,40 @@ class NormalizeDist(ToolBase):
         # shut down the i/o
         self.input_dist.deactivate()
         self.output_dist.deactivate()
+
+
+class PlotDist(ToolBase):
+    """
+    Loads a distribution and then saves a plot of it
+    """
+    input_dist = traitlets.Instance(klass=DistributionSource,
+                                    tooltip='input distribution',
+                                    label='input')
+    out_file = traitlets.Instance(klass=OpaqueFile,
+                                    tooltip='Figure File',
+                                    label='output')
+
+    def run(self):
+        # import mpl and set non-gui backend
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+
+        # activate and grab input data
+        self.input_dist.activate()
+        tmp_val = self.input_dist.read_values()
+        edges = self.input_dist.read_edges()
+
+        fig, ax = plt.subplots(1, 1)
+        ax.set_xlabel('bins')
+        ax.set_ylabel('vals')
+
+        ax.step(edges, tmp_val, where='post')
+
+        self.out_file.activate()
+        fname = self.out_file.backing_file
+        fig.savefig(fname)
+        self.input_dist.deactivate()
 
 
 class HelloWorld(ToolBase):
