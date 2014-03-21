@@ -307,19 +307,18 @@ class ImageSource(BaseSource):
         """
         pass
 
-    @abstractmethod
     def __getitem__(self, arg):
         """
         Defining __getitem__ is mandatory so that source[j] works
         """
-        pass
+        # TODO sort out if we want to steal the pims code here
+        return self.get_frame(arg)
 
-    @abstractmethod
     def __iter__(self):
         """
         Defining __iter__ so source is iterable is mandatory
         """
-        pass
+        raise NotImplementedError()
 
 
 class DistributionSink(BaseSink):
