@@ -44,9 +44,9 @@ class csv_dist_source(DistributionSource, FileHandler):
 
     def activate(self):
         super(csv_dist_source, self).activate()
-        with open(self._fname, 'rb') as csv_file:
+        with open(self._fname, 'rt') as csv_file:
             reader = csv.reader(csv_file, **self._kwargs)
-            header = reader.next()
+            header = next(reader)
 
             edges, vals = [np.asarray(_, dtype=dt) for
                            _, dt in zip(zip(*reader), header)]
@@ -112,10 +112,12 @@ class csv_dist_sink(DistributionSink, FileHandler):
     def write_dist(self, edges, vals, right_edge=False):
         if right_edge:
             raise NotImplementedError("don't support right edge yet")
-        with open(self._fname, 'wb') as csv_file:
+        with open(self._fname, 'wt') as csv_file:
             writer = csv.writer(csv_file, **self._kwargs)
-            writer.writerow([str(edges.dtype),
-                             str(vals.dtype)])
+            header = [str(edges.dtype),
+                             str(vals.dtype)]
+            print(type(header[0]))
+            writer.writerow(header)
             for line in zip(edges, vals):
                 writer.writerow(line)
 
