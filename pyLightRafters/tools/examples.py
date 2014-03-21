@@ -94,3 +94,4 @@ class HelloWorld(ToolBase):
         print("Hello World")
         print("שלום עולם")
         print("你好世界")
+        print("안녕하세요!")
