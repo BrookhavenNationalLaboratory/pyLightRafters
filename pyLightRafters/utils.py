@@ -233,6 +233,7 @@ class MD_dict(MutableMapping):
 def all_subclasses(in_c, sc_lst):
     t = in_c.__subclasses__()
     if len(t) > 0:
-        sc_lst.extend(_ for _ in t if not inspect.isabstract(_))
+        sc_lst.extend(_ for _ in t if (not inspect.isabstract(_) and
+                                        _.available()))
         for _sc in t:
             all_subclasses(_sc, sc_lst)
