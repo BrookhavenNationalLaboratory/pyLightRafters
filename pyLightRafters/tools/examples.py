@@ -2,11 +2,14 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import six
+from six.moves import zip
+from six.moves import xrange
+
 import numpy as np
 
 from ..tools_base import ToolBase
 from ..handler_base import (DistributionSource, DistributionSink,
-                            OpaqueFile)
+                            OpaqueFigure, ImageSource)
 
 import IPython.utils.traitlets as traitlets
 
@@ -59,7 +62,7 @@ class PlotDist(ToolBase):
     input_dist = traitlets.Instance(klass=DistributionSource,
                                     tooltip='input distribution',
                                     label='input')
-    out_file = traitlets.Instance(klass=OpaqueFile,
+    out_file = traitlets.Instance(klass=OpaqueFigure,
                                     tooltip='Figure File',
                                     label='output')
 
@@ -84,6 +87,7 @@ class PlotDist(ToolBase):
         fname = self.out_file.backing_file
         fig.savefig(fname)
         self.input_dist.deactivate()
+        self.out_file.deactivate()
 
 
 class HelloWorld(ToolBase):
@@ -95,3 +99,43 @@ class HelloWorld(ToolBase):
         print("שלום עולם")
         print("你好世界")
         print("안녕하세요!")
+
+
+class ImageHistogram(ToolBase):
+    out_file = traitlets.Instance(klass=OpaqueFigure,
+                                    tooltip='Figure File',
+                                    label='output')
+    input_file = traitlets.Instance(klass=ImageSource,
+                                    tooltip='Image File',
+                                    label='input')
+
+    def run(self):
+        # import mpl and set non-gui backend
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+
+        import numpy as np
+
+        # activate and grab input data
+        self.input_file.activate()
+        im = self.input_file.get_frame(0)
+
+        fig, ax = plt.subplots(1, 1)
+        ax.set_xlabel('count')
+        ax.set_ylabel('vals')
+
+        if len(im.shape) == 3 and im.shape[2] in (3, 4):
+            # assume rgb
+            for j, c in zip(xrange(3), ('r', 'g', 'b')):
+                vals, edges = np.histogram(im[..., j].flat, bins=100)
+                ax.step(edges[:-1], vals, where='post', color=c, label=c)
+        else:
+            vals, edges = np.histogram(im.flat, bins=100)
+            ax.step(edges[:-1], vals, where='post', color=c, label=c)
+
+        self.out_file.activate()
+        fname = self.out_file.backing_file
+        fig.savefig(fname)
+        self.input_file.deactivate()
+        self.out_file.deactivate()
