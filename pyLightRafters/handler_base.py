@@ -14,7 +14,7 @@ from six import with_metaclass
 from abc import ABCMeta, abstractmethod, abstractproperty
 from .utils import all_subclasses as _all_subclasses
 from functools import wraps
-
+import os
 
 class RequireActive(Exception):
     """
@@ -346,19 +346,17 @@ class DistributionSink(BaseSink):
         pass
 
 
-class FileHandler(with_metaclass(ABCMeta, object)):
+class FileHandler(object):
+    """
+    Mix-in class for providing information about the file
+    extensions that the handler can deal with.  This by it's self
+    is not particularly useful, however this will save some code.
+    """
     _extension_filters = set()
 
     @classmethod
     def handler_extensions(cls):
         return cls._extension_filters
-
-    @abstractproperty
-    def backing_file(self):
-        """
-        return the path to the backing file
-        """
-        pass
 
     @property
     def extension_filters(self):
@@ -368,36 +366,120 @@ class FileHandler(with_metaclass(ABCMeta, object)):
         return type(self).handler_extensions()
 
 
-class OpaqueFile(BaseSink, FileHandler):
+class SingleFileHandler(FileHandler):
+    """
+    Mix-in class for keeping track of a single file
+    """
+    def __init__(self, fname=None, *args, **kwargs):
+        """
+        Parameters
+        ----------
+        fname : str
+            Absolute path to file
+        """
+        if fname is None:
+            raise ValueError("must provide a valid path")
+        # TODO put (optional?) validation here
+        # pass remaining input up the mro chain
+        super(SingleFileHandler, self).__init__(*args, **kwargs)
+        # set the fname storage
+        self._fname = fname
+
+    @property
+    def backing_file(self):
+        """
+        return the full path to the backing file
+
+        Returns
+        -------
+        fpath : str
+            Absolute path of file
+        """
+        return self._fname
+
+    @property
+    def metadata(self):
+        # polymorphic properties!
+        try:
+            md = super(SingleFileHandler, self).metadata
+        except AttributeError:
+            md = dict()
+        md['fname'] = self._fname
+        return md
+
+
+class SequentialSetFileHandler(FileHandler):
+    """
+    Mix-in class for dealing with sequentially named files ex
+    (frame_01.png, frame_02.png, ...).
+
+    It takes in a new-style format string (uses {} and .format) for the
+    name and the base path.  The format string must take a single label `n`
+    which is the number.
+
+    The base path an the format string are joined using `os.path.join`, but
+    there is no reason that format_str can not contain '/'.  Ex
+    `set_{n}/a.png` is a valid (pull a file from a collection
+    of systematically named folders)
+
+    """
+    def __init__(self, base_path=None, format_str=None, *args, **kwargs):
+        """
+        Parameters
+        ----------
+        base_path : str
+             base path for files
+        """
+        if base_path is None:
+            base_path = ''  # convert None to empty string.  Do this
+                            # instead of using '' as the default value
+                            # so that we can un-ambiguously differentiate
+                            # between user input and 'default' input
+
+        if format_str is None:
+            raise ValueError("must provide a pattern")
+        # TODO put (optional?) validation here
+        # pass up any remaining imput
+        super(SequentialSetFileHandler, self).__init__(*args, **kwargs)
+        self._base_path = base_path
+        self._format_str = format_str
+
+    @property
+    def fname_format(self):
+        """
+        return the path to the backing file
+        """
+        return self._format_str
+
+    @property
+    def base_path(self):
+        return self._path
+
+    def get_fname(self, n):
+        return os.path.join((self._base_path,
+                            self._format_str.format(n=n)))
+
+    @property
+    def metadata(self):
+        # polymorphic properties!
+        try:
+            md = super(SequentialSetFileHandler, self).metadata
+        except AttributeError:
+            md = dict()
+        md['base_path'] = self._base_path
+        md['format_str'] = self._format_str
+        return md
+
+
+class OpaqueFile(SingleFileHandler, BaseSink):
     """
     That is an excessively complicated way to pass a path into
     a tool.
     """
-    def __init__(self, fname):
-        self._fname = fname
-        self._active = False
-
-    # fileHandler stuff
-    @property
-    def backing_file(self):
-        return self._fname
-
-    # base stuff
-    def activate(self):
-        self._active = True
-
-    def deactivate(self):
-        self._active = False
-
-    @property
-    def active(self):
-        return self._active
-
-    @property
-    def metadata(self):
-        return {'fname': self._fname}
+    pass
 
 
 class OpaqueFigure(OpaqueFile):
     _extension_filters = (set(('png', 'pdf', 'svg', 'jpg')) |
                             OpaqueFile.handler_extensions())
+    pass
