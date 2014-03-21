@@ -88,6 +88,21 @@ class BaseDataHandler(with_metaclass(ABCMeta, object)):
     `activate` and `deactivate`.
     """
     @classmethod
+    def available(cls):
+        """
+        Return if this handler is available for use.  This is to smooth
+        over import and configuration issues.  Sub-classes should over-ride
+        this function, by default the handlers are assumed to be usable if
+        they are imported.
+
+        Returns
+        -------
+        available : bool
+            If the handler class is able to be used.
+        """
+        return True
+
+    @classmethod
     def id(cls):
         return cls.__name__.lower()
 
