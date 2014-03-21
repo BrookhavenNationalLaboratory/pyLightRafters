@@ -143,7 +143,7 @@ class BaseDataHandler(with_metaclass(ABCMeta, object)):
         cls.__init__(**obj.metadata) and get back a functionally
         identical version of the object.
         """
-        pass
+        return dict()
 
     def __getstate__(self):
         """
