@@ -3,7 +3,9 @@ A set of sources and sinks for handling
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-from ..handler_base import DistributionSource, FileHandler, DistributionSink
+from ..handler_base import (DistributionSource, FileHandler, DistributionSink,
+                            require_active)
+
 import six
 from six.moves import zip
 import csv
@@ -27,8 +29,7 @@ class csv_dist_source(DistributionSource, FileHandler):
         fname : string
             sufficiently qualified path to file to read
         """
-        # base stuff
-        self._active = False
+        super(csv_dist_source, self).__init__()
         # file stuff
         self._fname = fname
         # distribution stuff
@@ -41,12 +42,8 @@ class csv_dist_source(DistributionSource, FileHandler):
         self._edges = None
         self._vals = None
 
-    # base properties
-    @property
-    def active(self):
-        return self._active
-
     def activate(self):
+        super(csv_dist_source, self).activate()
         with open(self._fname, 'rb') as csv_file:
             reader = csv.reader(csv_file, **self._kwargs)
             header = reader.next()
@@ -55,7 +52,6 @@ class csv_dist_source(DistributionSource, FileHandler):
                            _, dt in zip(zip(*reader), header)]
         self._edges = edges
         self._vals = vals
-        self._active = True
 
     def _clear_cache(self):
         if hasattr(self, '_edges'):
@@ -64,8 +60,8 @@ class csv_dist_source(DistributionSource, FileHandler):
             del self._vals
 
     def deactivate(self):
+        super(csv_dist_source, self).deactivate()
         self._clear_cache()
-        self._active = False
 
     # FileHandler properties
     @property
@@ -73,22 +69,15 @@ class csv_dist_source(DistributionSource, FileHandler):
         return self._fname
 
     # distribution methods
+    @require_active
     def read_values(self):
-        if not self.active:
-            raise RuntimeError('handler must be active')
-
         return self._vals
 
+    @require_active
     def read_edges(self, include_right=False):
-        if not self.active:
-            raise RuntimeError('handler must be active')
         if include_right:
             raise NotImplementedError("don't support right kwarg yet")
-
         return self._edges
-
-    def _register(self):
-        pass
 
     @property
     def metadata(self):
@@ -104,8 +93,7 @@ class csv_dist_sink(DistributionSink, FileHandler):
     _extension_filters = ['csv', 'txt']
 
     def __init__(self, fname, right=False, csv_kwargs=None):
-        # base stuff
-        self._active = False
+        super(csv_dist_sink, self).__init__()
         # file stuff
         self._fname = fname
         # distribution stuff
@@ -115,22 +103,12 @@ class csv_dist_sink(DistributionSink, FileHandler):
             csv_kwargs = {}
         self._kwargs = csv_kwargs
 
-    # base class parts
-    @property
-    def active(self):
-        return self._active
-
-    def activate(self):
-        self._active = True
-
-    def deactivate(self):
-        self._active = False
-
     # FileHandler stuff
     @property
     def backing_file(self):
         return self._fname
 
+    @require_active
     def write_dist(self, edges, vals, right_edge=False):
         if right_edge:
             raise NotImplementedError("don't support right edge yet")
@@ -140,9 +118,6 @@ class csv_dist_sink(DistributionSink, FileHandler):
                              str(vals.dtype)])
             for line in zip(edges, vals):
                 writer.writerow(line)
-
-    def _register(self):
-        pass
 
     @property
     def metadata(self):
