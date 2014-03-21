@@ -6,8 +6,9 @@ from nose.tools import raises, assert_equal, assert_true, assert_false
 from pyLightRafters.handler_base import (BaseDataHandler, require_active,
         require_inactive, RequireActive, RequireInactive)
 
-# spin up a fake class to test activate/deactivate code in BaseDataHandler
+from six.moves import cPickle as pickle
 
+# spin up a fake class to test activate/deactivate code in BaseDataHandler
 foo_doc = "foo doc string"
 unfoo_doc = "unfoo doc string"
 
@@ -54,3 +55,10 @@ def test_activate_deactivate():
     assert_true(a.active)
     a.deactivate()
     assert_false(a.active)
+
+
+@raises(pickle.PicklingError)
+def test_pickle_fail():
+    a = dummy_activate()
+    a.activate()
+    pickle.dumps(a)
