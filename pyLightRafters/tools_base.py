@@ -41,6 +41,13 @@ class ToolBase(traitlets.HasTraits):
     """
     # class level-functions
     @classmethod
+    def available(cls):
+        """
+        Provide a way for tools to report at run-time if they can be run
+        """
+        return True
+
+    @classmethod
     def tool_id(cls):
         """
         Return the 'id' of the tool.
