@@ -16,6 +16,7 @@ from .utils import all_subclasses as _all_subclasses
 from functools import wraps
 import os
 
+
 class RequireActive(Exception):
     """
     Exception sub-class to be raised when a function which
