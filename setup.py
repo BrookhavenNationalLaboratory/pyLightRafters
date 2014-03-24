@@ -11,7 +11,8 @@ except ImportError:
     except ImportError:
         from distutils.core import setup
 
-
+from distutils.core import setup, Extension
+import numpy
 print("Installing pyLight Tools")
 
 MAJOR = 0
@@ -61,9 +62,13 @@ setup(
     name='pyLightRafters',
     version=FULLVERSION,
     author='Brookhaven National Lab',
-    url="https://github.com/BrookhavenNationalLaboratory/pyLightRafters",
+    ext_modules=[Extension('_tifffile', ['pyLightRafters/extern/tifffile.c'],
+    include_dirs=[numpy.get_include()])],
+    url="https://github.com/BrookhavenNationalLaboratory/pyLightRafters",  # noqa
     packages=['pyLightRafters',
               'pyLightRafters.handlers',
-              'pyLightRafters.tools'],
-    install_requires=['numpy', 'six', 'h5py', 'IPython']
+              'pyLightRafters.tools',
+              'pyLightRafters.extern'],
+    install_requires=['numpy', 'six', 'h5py', 'IPython',
+                      'scipy']
     )
