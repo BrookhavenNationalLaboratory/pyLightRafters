@@ -241,7 +241,7 @@ class DistributionSource(BaseSource):
     edge of the last bin.
     """
     @abstractmethod
-    def read_values(self):
+    def values(self):
         """
         Return the `bin_values` as an array-like object
 
@@ -253,7 +253,7 @@ class DistributionSource(BaseSource):
         pass
 
     @abstractmethod
-    def read_edges(self, include_right=False):
+    def bin_edges(self, include_right=False):
         """
         Return the `bin_edges` as an array-like object
 
@@ -267,6 +267,18 @@ class DistributionSource(BaseSource):
         -------
         bin_edges : np.ndarray like
             The location of the bin edges
+        """
+        pass
+
+    @abstractmethod
+    def bin_centers(self):
+        """
+        Return the centers of the bins
+
+        Returns
+        -------
+        bin_centers : np.ndarray like
+            The centers of the bins
         """
         pass
 
