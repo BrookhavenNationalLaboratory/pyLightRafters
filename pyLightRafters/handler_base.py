@@ -283,7 +283,7 @@ class DistributionSource(BaseSource):
         pass
 
 
-class ImageSource(BaseSource):
+class FrameSource(BaseSource):
     """
     An ABC for the interface to read in images
 
@@ -332,6 +332,27 @@ class ImageSource(BaseSource):
         Defining __iter__ so source is iterable is mandatory
         """
         raise NotImplementedError()
+
+
+class ImageSource(FrameSource):
+    """
+    Classes where `get_frame` returns 2D arrays (images/slices/planes)
+    """
+    pass
+
+
+class VolumeSource(FrameSource):
+    """
+    Classes where `get_frame` returns 3D arrays (volume)
+    """
+    pass
+
+
+class SpecturmSource(FrameSource):
+    """
+    Hypothetical classes that return arrays of spectra.
+    """
+    pass
 
 
 class DistributionSink(BaseSink):
