@@ -7,7 +7,7 @@ import six
 
 import numpy as np
 
-from ..handler_base import DistributionSource, DistributionSink
+from ..handler_base import DistributionSource, DistributionSink, require_active
 
 
 class np_dist_source(DistributionSource):
@@ -30,7 +30,7 @@ class np_dist_source(DistributionSource):
             The bin values
         """
         # base stuff
-        self._active = False
+        super(np_dist_source, self).__init__()
         # np stuff, make local copies
         self._edges = np.array(edges)
         self._vals = np.array(vals)
@@ -41,41 +41,25 @@ class np_dist_source(DistributionSource):
             raise ValueError("vals must be 1D")
 
         # distribution stuff
-        if len(edges) == len(vals):
-            self._right = False
-        elif (len(edges) - 1)  == len(vals):
+        if (len(edges) - 1)  == len(vals):
             self._right = True
         else:
-            raise ValueError("the length of `edges` must be equal to " +
-                "or one greater than the length of the vals. " +
+            raise ValueError("the length of `edges` must be " +
+                "one greater than the length of the vals. " +
                 "Not len(edges): {el} and len(vals): {vl}".format(
                     el=len(edges), vl=len(vals)))
 
-    # base properties
-    @property
-    def active(self):
-        return self._active
-
-    def activate(self):
-        self._active = True
-
-    def deactivate(self):
-        self._active = False
-
-    # distribution methods
-    def read_values(self):
-        if not self.active:
-            raise RuntimeError('handler must be active')
-
+    @require_active
+    def values(self):
         return self._vals
 
-    def read_edges(self, include_right=False):
-        if not self.active:
-            raise RuntimeError('handler must be active')
-        if include_right:
-            raise NotImplementedError("don't support right kwarg yet")
-
+    @require_active
+    def bin_edges(self):
         return self._edges
+
+    @require_active
+    def bin_centers(self):
+        return self._edges[:-1] + np.diff(self._edges)
 
     @property
     def metadata(self):
@@ -89,26 +73,16 @@ class np_dist_sink(DistributionSink):
     """
     def __init__(self):
         # base stuff
-        self._active = False
+        super(np_dist_sink, self).__init__()
         self._vals = None
         self._edges = None
 
-    # base class parts
-    @property
-    def active(self):
-        return self._active
-
-    def activate(self):
-        self._active = True
-
-    def deactivate(self):
-        self._active = False
-
     # np parts
+    @require_active
     def write_dist(self, edges, vals, right_edge=False):
         self._edges = np.array(edges)
         self._vals = np.array(vals)
 
     @property
     def metadata(self):
-        return {}
+        return dict()
