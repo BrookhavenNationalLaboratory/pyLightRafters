@@ -3,7 +3,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import six
 
-from ..handler_base import ImageSource, SingleFileHandler
+from ..handler_base import ImageSource, SingleFileHandler, require_active
 
 try:
     from scipy.misc import imread
@@ -35,6 +35,7 @@ class scipy_imread_Handler(SingleFileHandler, ImageSource):
         super(scipy_imread_Handler, self).activate()
         self._cache = imread(self._fname)
 
+    @require_active
     def get_frame(self, n):
         if n != 0:
             raise NotImplementedError("multi-plane not implemented yet")
