@@ -146,17 +146,17 @@ class BaseDataHandler(with_metaclass(ABCMeta, object)):
         return self._active
 
     @abstractproperty
-    def metadata(self):
+    def kwarg_dict(self):
         """
         This should return enough information to passed to
-        cls.__init__(**obj.metadata) and get back a functionally
+        cls.__init__(**obj.kwarg_dict) and get back a functionally
         identical version of the object.
         """
         return dict()
 
     def __getstate__(self):
         """
-        Return metadata dict
+        Return kwarg_dict dict
 
         Part of over-riding default pickle/unpickle behavior
 
@@ -164,7 +164,7 @@ class BaseDataHandler(with_metaclass(ABCMeta, object)):
         """
         if self.active:
             raise pickle.PicklingError("can not pickle active handler")
-        return self.metadata
+        return self.kwarg_dict
 
     def __setstate__(self, in_dict):
         """
@@ -440,10 +440,10 @@ class SingleFileHandler(FileHandler):
         return self._fname
 
     @property
-    def metadata(self):
+    def kwarg_dict(self):
         # polymorphic properties!
         try:
-            md = super(SingleFileHandler, self).metadata
+            md = super(SingleFileHandler, self).kwarg_dict
         except AttributeError:
             md = dict()
         md['fname'] = self._fname
@@ -502,10 +502,10 @@ class SequentialSetFileHandler(FileHandler):
                             self._format_str.format(n=n)))
 
     @property
-    def metadata(self):
+    def kwarg_dict(self):
         # polymorphic properties!
         try:
-            md = super(SequentialSetFileHandler, self).metadata
+            md = super(SequentialSetFileHandler, self).kwarg_dict
         except AttributeError:
             md = dict()
         md['base_path'] = self._base_path

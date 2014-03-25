@@ -62,9 +62,11 @@ class np_dist_source(DistributionSource):
         return self._edges[:-1] + np.diff(self._edges)
 
     @property
-    def metadata(self):
-        return {'edges': self._edges,
-                'vals': self._vals}
+    def kwarg_dict(self):
+        md = super(np_dist_source, self).kwarg_dict
+        md.update({'edges': self._edges,
+                    'vals': self._vals})
+        return md
 
 
 class np_dist_sink(DistributionSink):
@@ -84,5 +86,5 @@ class np_dist_sink(DistributionSink):
         self._vals = np.array(vals)
 
     @property
-    def metadata(self):
-        return dict()
+    def kwarg_dict(self):
+        return super(np_dist_sink, self).kwarg_dict

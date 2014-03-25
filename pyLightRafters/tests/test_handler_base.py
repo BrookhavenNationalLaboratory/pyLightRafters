@@ -15,8 +15,8 @@ unfoo_doc = "unfoo doc string"
 
 class dummy_activate(BaseDataHandler):
     @property
-    def metadata(self):
-        return dict()
+    def kwarg_dict(self):
+        return super(dummy_activate, self).kwarg_dict
 
     @require_active
     def foo(self):

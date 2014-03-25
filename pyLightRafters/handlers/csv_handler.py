@@ -85,10 +85,11 @@ class csv_dist_source(SingleFileHandler, DistributionSource):
             return self._edges + np.r_[bin_diff, np.mean(bin_diff)]
 
     @property
-    def metadata(self):
-        return {'fname': self._fname,
-                'right': self._right,
-                'csv_kwargs': self._kwargs}
+    def kwarg_dict(self):
+        md = super(csv_dist_source, self).kwarg_dict
+        md.update({'right': self._right,
+                    'csv_kwargs': self._kwargs})
+        return md
 
 
 class csv_dist_sink(SingleFileHandler, DistributionSink):
@@ -121,7 +122,8 @@ class csv_dist_sink(SingleFileHandler, DistributionSink):
                 writer.writerow(line)
 
     @property
-    def metadata(self):
-        return {'fname': self._fname,
-                'right': self._right,
-                'csv_kwargs': self._kwargs}
+    def kwarg_dict(self):
+        md = super(csv_dist_sink, self).kwarg_dict
+        md.update({'right': self._right,
+                    'csv_kwargs': self._kwargs})
+        return md
