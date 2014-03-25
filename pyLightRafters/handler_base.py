@@ -14,6 +14,7 @@ from six import with_metaclass
 from abc import ABCMeta, abstractmethod, abstractproperty
 from .utils import all_subclasses as _all_subclasses
 from functools import wraps
+import numpy as np
 import os
 
 
@@ -311,24 +312,55 @@ class FrameSource(BaseSource):
     """
     def __init__(self, resolution=None, resolution_units=None,
                 *args, **kwargs):
+        """
+        Parameters
+        ----------
+        resolution : scalar, iterable, None
+            axial resolution, scalar, iterable converted to np.ndarray
+            if iterable, length should match underlying dimension
+            if None, defaults to 1
+
+        resolution_units : str or None
+            units of axial dimensions.  If None, defaults to 'pix'
+        """
         # deal with default values
         if resolution is None:
             resolution = 1
+
         if resolution_units is None:
             resolution_units = 'pix'
 
         # save values
-        self._resolution = resolution
+        self._resolution = np.array(resolution)
         self._resolution_units = resolution_units
         # pass up the mro stack
         super(FrameSource, self).__init__(*args, **kwargs)
 
     @property
     def resolution(self):
+        """
+        The axial size of a voxel as a numpy array, if isotropic, 0d,
+        else dimension should match the dimension returned by get_frame.
+        Units given by `resolution_units`.
+
+        Returns
+        -------
+        resolution : np.ndarray
+           The axial size of a voxel
+        """
         return self._resolution
 
     @property
     def resolution_units(self):
+        """
+        The units for the `resolution` as a string.  This may be changed
+        to be some clever unit-tracking class.
+
+        Returns
+        -------
+        resoultion_units : str
+            Units of the resolution
+        """
         return self._resolution_units
 
     @abstractmethod
@@ -342,6 +374,51 @@ class FrameSource(BaseSource):
             The frame to extract
         """
         pass
+
+    def get_frame_metadata(self, frame_num, key):
+        """
+        Returns meta-data for frame `frame_num`.  This is frame-specific
+        meta-data (like exact timestamp).
+
+        If the key is not found, raises `KeyError`.  This is different
+        than how traitslets behave. The logic to raise instead of
+        returning `None` is to make it possible
+        to check if a metadata value has been defined.
+
+        The base implementation always raises.  Sub-classes should only
+        call up the mro stack _after_ failing to find the key in their
+        own internals
+
+        Parameters
+        ----------
+        frame_num : uint
+            The frame to extract
+
+        key : str
+            The meta-data key to extract
+        """
+        raise KeyError
+
+    def get_metadata(self, key):
+        """
+        Returns meta-data for the set of frames (this is 'global' meta-data
+        like the name of the instrument).
+
+        If the key is not found, raises `KeyError`.  This is different
+        than how traitslets behave. The logic to raise instead of
+        returning `None` is to make it possible
+        to check if a metadata value has been defined.
+
+        The base implementation always raises.  Sub-classes should only
+        call up the mro stack _after_ failing to find the key in their
+        own internals
+
+        Parameters
+        ----------
+        key : str
+            The meta-data key to extract
+        """
+        raise KeyError
 
     @abstractmethod
     def __len__(self):
