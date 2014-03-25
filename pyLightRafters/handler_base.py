@@ -174,6 +174,19 @@ class BaseDataHandler(with_metaclass(ABCMeta, object)):
         """
         self.__init__(**in_dict)
 
+    def __enter__(self):
+        """
+        Set up a context manager and activate the handler
+        """
+        self.activate()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """
+        Clean up the context manager and deactivate the handler
+        """
+        self.deactivate()
+
 
 def require_active(fun):
     """
