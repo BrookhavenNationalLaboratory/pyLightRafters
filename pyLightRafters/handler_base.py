@@ -87,6 +87,9 @@ class BaseDataHandler(with_metaclass(ABCMeta, object)):
 
     The consumers of these objects should take care of calling
     `activate` and `deactivate`.
+
+    Ideally, this will be the last object in the MRO chain, put last when using
+    multiple inheritance.
     """
     @classmethod
     def available(cls):
@@ -107,7 +110,12 @@ class BaseDataHandler(with_metaclass(ABCMeta, object)):
     def id(cls):
         return cls.__name__.lower()
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        # this should always be last, but if the order is
+        # flipped on the def, pass up the MRO chain.
+        # if this is last and all kwargs have not been exhausted,
+        # then object will raise an error
+        super(BaseDataHandler, self).__init__(*args, **kwargs)
         self._active = False
 
     def activate(self):

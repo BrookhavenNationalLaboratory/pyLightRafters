@@ -28,12 +28,12 @@ def test_round_trip_float_nr(fname):
     # read from disk
     sr = csv_dist_source(fname)
     sr.activate()
-    read_edges = sr.read_edges()
-    read_vals = sr.read_values()
+    bin_edges = sr.bin_edges()
+    read_vals = sr.values()
     sr.deactivate()
 
     assert_almost_equal(read_vals, vals)
-    assert_almost_equal(read_edges, edges)
+    assert_almost_equal(bin_edges, edges)
 
 
 @namedtmpfile('.csv')
@@ -50,12 +50,12 @@ def test_round_trip_int_nr(fname):
     # read from disk
     sr = csv_dist_source(fname)
     sr.activate()
-    read_edges = sr.read_edges()
-    read_vals = sr.read_values()
+    bin_edges = sr.bin_edges()
+    read_vals = sr.values()
     sr.deactivate()
 
     assert_almost_equal(read_vals, vals)
-    assert_almost_equal(read_edges, edges)
+    assert_almost_equal(bin_edges, edges)
 
 
 @raises(RequireActive)
@@ -75,7 +75,7 @@ def test_snk_active(fname):
 def test_src_active(fname):
     # write to disk
     sn = csv_dist_source(fname)
-    sn.read_values()
+    sn.values()
 
 
 @namedtmpfile('.csv')

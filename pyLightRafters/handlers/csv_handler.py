@@ -3,7 +3,9 @@ A set of sources and sinks for handling
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-from ..handler_base import (DistributionSource, FileHandler, DistributionSink,
+from ..handler_base import (DistributionSource, SingleFileHandler,
+                            DistributionSink,
+                            FileHandler,
                             require_active)
 
 import six
@@ -12,12 +14,13 @@ import csv
 import numpy as np
 
 
-class csv_dist_source(DistributionSource, FileHandler):
+class csv_dist_source(SingleFileHandler, DistributionSource):
     """
     A source for reading distribution data out of csv (or tab or what ever)
     separated files.
     """
-    _extension_filters = ['csv', 'txt']
+    _extension_filters = {'csv',
+                          'txt'} | SingleFileHandler.handler_extensions()
 
     # local stuff
     def __init__(self, fname, right=False, csv_kwargs=None):
@@ -29,9 +32,7 @@ class csv_dist_source(DistributionSource, FileHandler):
         fname : string
             sufficiently qualified path to file to read
         """
-        super(csv_dist_source, self).__init__()
-        # file stuff
-        self._fname = fname
+        super(csv_dist_source, self).__init__(fname=fname)
         # distribution stuff
         self._right = right
         # csv stuff
@@ -63,21 +64,25 @@ class csv_dist_source(DistributionSource, FileHandler):
         super(csv_dist_source, self).deactivate()
         self._clear_cache()
 
-    # FileHandler properties
-    @property
-    def backing_file(self):
-        return self._fname
-
     # distribution methods
     @require_active
-    def read_values(self):
+    def values(self):
         return self._vals
 
     @require_active
-    def read_edges(self, include_right=False):
+    def bin_edges(self, include_right=False):
         if include_right:
             raise NotImplementedError("don't support right kwarg yet")
         return self._edges
+
+    @require_active
+    def bin_centers(self, include_right=False):
+        # if we have a right edge
+        if len(self._edges) > len(self._vals):
+            return self._edges[:-1] + np.diff(self._edges)
+        elif len(self._edges) == len(self._vals):
+            bin_diff = np.diff(self._edges)
+            return self._edges + np.r_[bin_diff, np.mean(bin_diff)]
 
     @property
     def metadata(self):
@@ -86,27 +91,21 @@ class csv_dist_source(DistributionSource, FileHandler):
                 'csv_kwargs': self._kwargs}
 
 
-class csv_dist_sink(DistributionSink, FileHandler):
+class csv_dist_sink(SingleFileHandler, DistributionSink):
     """
     A sink for writing distribution data to a csv file.
     """
-    _extension_filters = ['csv', 'txt']
+    _extension_filters = {'csv',
+                          'txt'} | SingleFileHandler.handler_extensions()
 
     def __init__(self, fname, right=False, csv_kwargs=None):
-        super(csv_dist_sink, self).__init__()
-        # file stuff
-        self._fname = fname
+        super(csv_dist_sink, self).__init__(fname=fname)
         # distribution stuff
         self._right = right
         # csv stuff
         if csv_kwargs is None:
             csv_kwargs = {}
         self._kwargs = csv_kwargs
-
-    # FileHandler stuff
-    @property
-    def backing_file(self):
-        return self._fname
 
     @require_active
     def write_dist(self, edges, vals, right_edge=False):
