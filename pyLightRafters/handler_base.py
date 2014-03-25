@@ -309,6 +309,28 @@ class FrameSource(BaseSource):
     with lots of functions or many classes with a few functions.
     Leaning toward lots of simple classes
     """
+    def __init__(self, resolution=None, resolution_units=None,
+                *args, **kwargs):
+        # deal with default values
+        if resolution is None:
+            resolution = 1
+        if resolution_units is None:
+            resolution_units = 'pix'
+
+        # save values
+        self._resolution = resolution
+        self._resolution_units = resolution_units
+        # pass up the mro stack
+        super(FrameSource, self).__init__(*args, **kwargs)
+
+    @property
+    def resolution(self):
+        return self._resolution
+
+    @property
+    def resolution_units(self):
+        return self._resolution_units
+
     @abstractmethod
     def get_frame(self, frame_num):
         """
