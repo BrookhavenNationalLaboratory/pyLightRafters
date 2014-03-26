@@ -62,3 +62,13 @@ def test_pickle_fail():
     a = dummy_activate()
     a.activate()
     pickle.dumps(a)
+
+
+def test_context():
+    a = dummy_activate()
+    assert_false(a.active)
+
+    with a as tst:
+        assert_true(tst.active)
+
+    assert_false(a.active)
