@@ -3,8 +3,8 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import six
-from six.moves import zip
-from six.moves import xrange
+
+import sys
 
 import numpy as np
 
@@ -106,3 +106,86 @@ class GTThreshold(ToolBase):
                                         self.input_file.resolution_units)
         with self.output_file as snk:
             snk.record_frame(res, 0)
+
+
+class _base_binary_op(ToolBase):
+    """
+    A template class for building binary operation tools
+    for pyLight usage.  This is for operations that take two
+    images (A and B) and no parameters (ex addition).
+    """
+    A = traitlets.Instance(klass=ImageSource,
+                                    tooltip='Image File A',
+                                    label='input')
+    B = traitlets.Instance(klass=ImageSource,
+                                    tooltip='Image File B',
+                                    label='input')
+    out = traitlets.Instance(klass=ImageSink,
+                                    tooltip='Image File',
+                                    label='output')
+
+    @classmethod
+    def available(cls):
+        """
+        Make this class non available (so it does not show up in
+        the sub-class lists.
+        """
+        return False
+
+
+def _gen_binary_op_class(opp, doc, name):
+    """
+    A function which generates classes around the `_base_binary_op`
+    'template' class. This will eventually be generalized and
+    moved else where.
+
+    This function should only be used at import time to use this
+    with IPython parallel.  This is because the class will be
+    pickled to push to the external process so the class must
+    be defined correctly on both sides.
+
+    Parameters
+    ----------
+    opp : function
+        a function that takes two numpy arrays and returns an array
+
+    doc : string
+         The docstring for the new class
+
+    name : string
+        The name of the new class, should be ascii to play nice with
+        py2k
+    """
+    avail = classmethod(lambda cls: True)
+    # define the run function (which closes over the
+    def run(self):
+        # TODO add checks for resolution matching
+        # TODO add meta-data pass through
+        with self.A as A, self.B as B:
+            out = opp(A, B)
+
+        self.output_file.set_resolution(self.A.resolution,
+                                        self.A.resolution_units)
+        with out as snk:
+            snk.record_frame(out, 0)
+    #
+    new_class = type(str(name), (_base_binary_op,), {"run": run,
+                                                     "available": avail,
+                                                     '__module__': __name__})
+    new_class.__doc__ = doc
+
+    return new_class
+
+# list of binary operations to wrap
+_bin_op_list = [
+    (np.add, 'Add image A and Image B (A + B)', 'AddImages'),
+    (np.subtract, 'Subtract image B from Image A (A - B)',
+     'SubtractImages'),
+    (np.multiply, 'Multiply images A and B element wise(A * B)',
+     'MultImages'),
+    ]
+
+mod = sys.modules[__name__]
+# loop over the operations and shove into the current module
+for args in _bin_op_list:
+    setattr(mod, args[-1], _gen_binary_op_class(*args))
