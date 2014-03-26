@@ -455,9 +455,10 @@ class FrameSource(BaseSource):
 
     @property
     def kwarg_dict(self):
-        dd = super(FrameSink, self).kwarg_dict
+        dd = super(FrameSource, self).kwarg_dict
         dd.update({'resolution': self.resolution,
                     'resolution_units': self.resolution_units})
+        return dd
 
 
 class FrameSink(BaseSink):
@@ -528,7 +529,7 @@ class FrameSink(BaseSink):
     ##     """
     ##     Record a sequence of frames to the sink
     ##     """
-    ##     raise NotImplementedError("this will be come an abstract method eventually")
+    ##     raise NotImplementedError("this will be come an abstract method eventually") # noqa
 
     @abstractmethod
     def set_metadata(self, md_dict):
@@ -548,6 +549,7 @@ class FrameSink(BaseSink):
         dd = super(FrameSink, self).kwarg_dict
         dd.update({'resolution': self.resolution,
                     'resolution_units': self.resolution_units})
+        return dd
 
 
 class ImageSource(FrameSource):
