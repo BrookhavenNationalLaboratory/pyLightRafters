@@ -453,6 +453,102 @@ class FrameSource(BaseSource):
         """
         raise NotImplementedError()
 
+    @property
+    def kwarg_dict(self):
+        dd = super(FrameSink, self).kwarg_dict
+        dd.update({'resolution': self.resolution,
+                    'resolution_units': self.resolution_units})
+
+
+class FrameSink(BaseSink):
+    """
+    An ABC for sinking frames and frame sequences
+    """
+    def __init__(self, resolution=None, resolution_units=None,
+                    *args, **kwargs):
+        """
+        Parameters
+        ----------
+        resolution : scalar, iterable, None
+            axial resolution, scalar, iterable converted to np.ndarray
+            if iterable, length should match underlying dimension
+            if None, defaults to 1
+
+        resolution_units : str or None
+            units of axial dimensions.  If None, defaults to 'pix'
+        """
+        # deal with default values
+        if resolution is None:
+            resolution = 1
+
+        if resolution_units is None:
+            resolution_units = 'pix'
+
+        # save values
+        self._resolution = np.array(resolution)
+        self._resolution_units = resolution_units
+        # pass up the mro stack
+        super(FrameSink, self).__init__(*args, **kwargs)
+
+    def set_resolution(self, resolution, resolution_units):
+        # TODO add some error checking
+        self._resolution = resolution
+        self._resolution_units = resolution_units
+
+    @property
+    def resolution(self):
+        return self._resolution
+
+    @property
+    def resolution_units(self):
+        return self._resolution_units
+
+    @abstractmethod
+    def record_frame(self, img, frame_number, frame_md):
+        """
+        Record a frame to the sink
+
+        Parameters
+        ----------
+        img : ndarray
+            a frame, dimensional will depend on the implementation
+
+        frame_number : uint
+           The frame number
+
+        frame_md : dict, md_dict, or None
+            frame-level meta-data
+        """
+        pass
+
+    #@abstractmethod
+    ## def record_frame_sequence(self, imgs,
+    ##                         frame_numbers_list=None,
+    ##                         frame_md_list=None):
+    ##     """
+    ##     Record a sequence of frames to the sink
+    ##     """
+    ##     raise NotImplementedError("this will be come an abstract method eventually")
+
+    @abstractmethod
+    def set_metadata(self, md_dict):
+        """
+        Set 'global' level metadata about all of the frames being put
+        into this sink
+
+        Parameters
+        ----------
+        md_dict : md_dict or dict
+            The meta-data to set
+        """
+        pass
+
+    @property
+    def kwarg_dict(self):
+        dd = super(FrameSink, self).kwarg_dict
+        dd.update({'resolution': self.resolution,
+                    'resolution_units': self.resolution_units})
+
 
 class ImageSource(FrameSource):
     """
