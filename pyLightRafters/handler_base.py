@@ -552,6 +552,13 @@ class FrameSink(BaseSink):
         return dd
 
 
+class ImageSink(FrameSink):
+    """
+    Classes where `record_*` expects 2D arrays (images/slices/planes)
+    """
+    pass
+
+
 class ImageSource(FrameSource):
     """
     Classes where `get_frame` returns 2D arrays (images/slices/planes)
