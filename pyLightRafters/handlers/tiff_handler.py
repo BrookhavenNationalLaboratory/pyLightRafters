@@ -6,7 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 import six
 
 from ..handler_base import (ImageSource, SingleFileHandler,
-                            require_active, VolumeSource, FrameSink)
+                            require_active, VolumeSource, ImageSink)
 from ..extern import tifffile
 
 
@@ -59,7 +59,10 @@ class tifffile_read3D_Handler(_tifffile_read_Handler, VolumeSource):
         return 1
 
 
-class tifffile_Sink(SingleFileHandler, FrameSink):
+class tifffile_Sink(SingleFileHandler, ImageSink):
+    _extension_filters = {'tif', 'tiff', 'stk',
+                          } | SingleFileHandler._extension_filters
+
     def __init__(self, fname, resolution=None, resolution_units=None):
         super(tifffile_Sink, self).__init__(fname=fname,
                                             resolution_units=resolution_units,
@@ -69,6 +72,9 @@ class tifffile_Sink(SingleFileHandler, FrameSink):
     def record_frame(self, img, frame_number, frame_md=None):
         if frame_number != 0:
             raise NotImplementedError("have not written this code yet")
+        # if boolean, up-cast to uint8 because tifffile can't write bools
+        if img.dtype.kind == 'b':
+            img = img.astype('uint8')
         tifffile.imsave(self.backing_file, img)
 
     def set_metadata(self, md_dict):
