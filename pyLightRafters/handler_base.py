@@ -411,7 +411,7 @@ class FrameSource(BaseSource):
         key : str
             The meta-data key to extract
         """
-        raise KeyError
+        raise KeyError()
 
     def get_metadata(self, key):
         """
@@ -432,7 +432,7 @@ class FrameSource(BaseSource):
         key : str
             The meta-data key to extract
         """
-        raise KeyError
+        raise KeyError()
 
     @abstractmethod
     def __len__(self):
