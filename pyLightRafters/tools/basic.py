@@ -157,6 +157,7 @@ def _gen_binary_op_class(opp, doc, name):
         py2k
     """
     avail = classmethod(lambda cls: True)
+
     # define the run function (which closes over the
     def run(self):
         # TODO add checks for resolution matching
@@ -183,6 +184,15 @@ _bin_op_list = [
      'SubtractImages'),
     (np.multiply, 'Multiply images A and B element wise(A * B)',
      'MultImages'),
+    (np.divide, ('Divide images A and B element wise (A / B)\n' +
+                 'Output type depends on input types'),
+     'DivideImages'),
+    (np.true_divide, ('Divide images A and B element wise (A / B)\n' +
+                 'Always returns floats.'),
+                 'TrueDivideImages'),
+    (np.floor_divide, ('Divide images A and B element wise (A / B)\n' +
+                 'Always returns ints (floor of true_division).'),
+                 'FloorDivideImages'),
     ]
 
 mod = sys.modules[__name__]
