@@ -88,3 +88,11 @@ class np_dist_sink(DistributionSink):
     @property
     def kwarg_dict(self):
         return super(np_dist_sink, self).kwarg_dict
+
+    def make_source(self, klass=None):
+        if klass is None:
+            klass = np_dist_source
+        else:
+            raise NotImplementedError("have not implemented class selection")
+
+        return klass(self._edges, self._vals)

@@ -233,6 +233,7 @@ class BaseSink(BaseDataHandler):
     This layer exists so that the `isinstace(obj, BaseSink)` will
     work.
     """
+    @abstractmethod
     def make_source(self, source_klass=None):
         """
         Returns a source object which will access the data written
@@ -247,7 +248,7 @@ class BaseSink(BaseDataHandler):
         source_klass : None or type
             if not-None, what class to use to build the source object
         """
-        raise NotImplementedError('will be made abstract method')
+        pass
 
 
 class DistributionSource(BaseSource):

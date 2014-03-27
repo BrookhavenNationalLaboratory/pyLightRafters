@@ -79,3 +79,11 @@ class tifffile_Sink(SingleFileHandler, ImageSink):
 
     def set_metadata(self, md_dict):
         raise NotImplementedError("have not done this yet")
+
+    def make_source(self, klass_hint=None):
+        if klass_hint is not None:
+            raise NotImplementedError("have not implemented this yet")
+
+        return tifffile_read2D_Handler(self.fname,
+                                       self.resolution,
+                                       self.resolution_units)

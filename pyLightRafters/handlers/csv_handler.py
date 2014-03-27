@@ -127,3 +127,11 @@ class csv_dist_sink(SingleFileHandler, DistributionSink):
         md.update({'right': self._right,
                     'csv_kwargs': self._kwargs})
         return md
+
+    def make_source(self, klass=None):
+        if klass is not None:
+            raise NotImplementedError("don't support this yet")
+
+        return csv_dist_source(self.backing_file,
+                               right=self._right,
+                               csv_kwargs=self._kwargs)
