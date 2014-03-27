@@ -4,10 +4,11 @@ A set of sources and sinks for handling in-memory nparrays
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import six
-
+from six.moves import range
 import numpy as np
 
-from ..handler_base import DistributionSource, DistributionSink, require_active
+from ..handler_base import (DistributionSource, DistributionSink, require_active,
+                            ImageSource, ImageSink, FrameSource)
 
 
 class np_dist_source(DistributionSource):
@@ -96,3 +97,92 @@ class np_dist_sink(DistributionSink):
             raise NotImplementedError("have not implemented class selection")
 
         return klass(self._edges, self._vals)
+
+
+_dim_err = ("wrong dimensions, data_array should have ndim = {fd} " +
+             "or {fdp1}, not {ndim}")
+
+
+class np_frame_source(FrameSource):
+    """
+    A source backed by a numpy arrays for in-memory image work
+
+    """
+    def __init__(self, data_array, frame_dim, meta_data=None,
+                 frame_meta_data=None, resolution=None,
+                 resolution_units=None):
+        """
+        Parameters
+        ----------
+
+        data_array : ndarray
+            The image stack
+
+        meta_data : dict or None
+        """
+        super(np_frame_source, self).__init__(resolution=resolution,
+                                        resolution_units=resolution_units)
+        # make a copy of the data
+        data_array = np.array(data_array)
+        # if have a non-sensible number of dimensions raise
+        if data_array.ndims < frame_dim or data_array.ndims > frame_dim + 1:
+            raise ValueError(_dim_err.format(fd=frame_dim,
+                                            fdp1=frame_dim+1,
+                                            ndim=data_array.ndim))
+        # if only one frame, upcast dimensions
+        elif data_array.ndims == frame_dim:
+            data_array.shape = (1, ) + data_array.shape
+
+        # save the data
+        self._data = data_array
+
+        # keep a copy of the length
+        self._len = data_array.shape[0]
+
+        # deal with set-level meta-data
+        if meta_data is None:
+            meta_data = dict()
+
+        self._meta_data = meta_data
+
+        if frame_meta_data is None:
+            frame_meta_data = [dict() for _ in xrange(self._len)]
+
+        if len(frame_meta_data) != self._len:
+            raise ValueError(("number of frames and number of" +
+                             " md dicts must match"))
+
+        self._frame_meta_data = frame_meta_data
+
+    def len(self):
+        return self._len
+
+    @require_active
+    def get_frame(self, n):
+        # make a copy of the array before handing it out so we don't get
+        # odd in-place operation bugs
+        return np.array(self._data[n])
+
+    def get_frame_metadata(self, frame_num, key):
+        return self._frame_meta_data[frame_num][key]
+
+    def get_metadata(self, key):
+        return self._meta_data[key]
+
+    @require_active
+    def __iter__(self):
+        # leverage the numpy iterable
+        return iter(self._data)
+
+    @require_active
+    def __getitem__(self, arg):
+        # leverage the numpy slicing magic
+        return self._data[arg]
+
+    def kwarg_dict(self):
+        dd = super(np_frame_source, self).kwarg_dict
+        dd.update({'data_array': self._data,
+                   'frame_dim': self._data.ndim - 1,
+                   'meta_data': self._meta_data,
+                   'frame_meta_data': self._frame_meta_data})
+        return dd
