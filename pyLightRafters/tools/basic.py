@@ -167,7 +167,7 @@ def _gen_binary_op_class(opp, doc, name):
             for a, b in zip(A, B):
                 tmp_out.append(opp(a, b))
 
-        self.output_file.set_resolution(self.A.resolution,
+        self.out.set_resolution(self.A.resolution,
                                         self.A.resolution_units)
         with self.out as snk:
             for j, _out_frame in enumerate(tmp_out):
