@@ -132,10 +132,11 @@ class ImageHistogram(ToolBase):
                 ax.step(edges[:-1], vals, where='post', color=c, label=c)
         else:
             vals, edges = np.histogram(im.flat, bins=100)
-            ax.step(edges[:-1], vals, where='post', color=c, label=c)
+            ax.step(edges[:-1], vals, where='post')
 
         self.out_file.activate()
         fname = self.out_file.backing_file
         fig.savefig(fname)
         self.input_file.deactivate()
         self.out_file.deactivate()
+        plt.close('all')
