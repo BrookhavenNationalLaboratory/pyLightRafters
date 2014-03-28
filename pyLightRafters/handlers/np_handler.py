@@ -151,7 +151,7 @@ class np_frame_source(FrameSource):
         self._meta_data = meta_data
 
         if frame_meta_data is None:
-            frame_meta_data = [dict() for _ in xrange(self._len)]
+            frame_meta_data = [dict() for _ in range(self._len)]
 
         if len(frame_meta_data) != self._len:
             raise ValueError(("number of frames and number of" +
