@@ -7,8 +7,9 @@ import six
 from six.moves import range
 import numpy as np
 
-from ..handler_base import (DistributionSource, DistributionSink, require_active,
-                            ImageSource, ImageSink, FrameSource)
+from ..handler_base import (DistributionSource, DistributionSink,
+                            require_active, ImageSink,
+                            ImageSource, FrameSink, FrameSource)
 
 
 class np_dist_source(DistributionSource):
@@ -108,9 +109,8 @@ class np_frame_source(FrameSource):
     A source backed by a numpy arrays for in-memory image work
 
     """
-    def __init__(self, data_array, frame_dim, meta_data=None,
-                 frame_meta_data=None, resolution=None,
-                 resolution_units=None):
+    def __init__(self, data_array=None, frame_dim=None, meta_data=None,
+                 frame_meta_data=None, *args, **kwargs):
         """
         Parameters
         ----------
@@ -120,17 +120,22 @@ class np_frame_source(FrameSource):
 
         meta_data : dict or None
         """
-        super(np_frame_source, self).__init__(resolution=resolution,
-                                        resolution_units=resolution_units)
+        super(np_frame_source, self).__init__(*args, **kwargs)
+        if data_array is None:
+            raise ValueError("data_array must be not-None")
+
         # make a copy of the data
         data_array = np.array(data_array)
+        if frame_dim is None:
+            frame_dim = data_array.ndim - 1
+
         # if have a non-sensible number of dimensions raise
-        if data_array.ndims < frame_dim or data_array.ndims > frame_dim + 1:
+        if data_array.ndim < frame_dim or data_array.ndim > frame_dim + 1:
             raise ValueError(_dim_err.format(fd=frame_dim,
                                             fdp1=frame_dim+1,
                                             ndim=data_array.ndim))
         # if only one frame, upcast dimensions
-        elif data_array.ndims == frame_dim:
+        elif data_array.ndim == frame_dim:
             data_array.shape = (1, ) + data_array.shape
 
         # save the data
@@ -154,7 +159,7 @@ class np_frame_source(FrameSource):
 
         self._frame_meta_data = frame_meta_data
 
-    def len(self):
+    def __len__(self):
         return self._len
 
     @require_active
@@ -186,3 +191,76 @@ class np_frame_source(FrameSource):
                    'meta_data': self._meta_data,
                    'frame_meta_data': self._frame_meta_data})
         return dd
+
+
+class NPImageSource(np_frame_source, ImageSource):
+    def __init__(self, *args, **kwargs):
+        ndim = kwargs.pop('frame_dim', 2)
+        if ndim != 2:
+            raise RuntimeError("frame_dim should be 2")
+        kwargs['frame_dim'] = ndim
+        super(NPImageSource, self).__init__(*args, **kwargs)
+
+
+_im_dim_error = "img.ndim must equal {snk} not {inp}"
+
+
+class NPFrameSink(FrameSink):
+    def __init__(self, frame_dim, *args, **kwargs):
+        super(NPFrameSink, self).__init__(*args, **kwargs)
+        self._frame_store = dict()
+        self._md_store = dict()
+        self._md = dict()
+        self._frame_dim = frame_dim
+
+    def record_frame(self, img, frame_number, frame_md=None):
+        if img.ndim != self._frame_dim:
+            raise ValueError(_im_dim_error.format(self._frame_dim,
+                                                  img.ndim))
+        # TODO add checking on shape based on first frame or
+        # init arg
+        self._frame_store[frame_number] = img
+        if frame_md is None:
+            frame_md = dict()
+        self._md_store[frame_number] = frame_md
+
+    def set_metadata(self, md_dict):
+        self._md.update(md_dict)
+
+    def _clean(self):
+        frames = np.array(list(
+            six.iterkeys(self._frame_store)))
+        if (np.min(frames) != 0 or
+              np.max(frames) != len(frames) - 1):
+            raise ValueError("did not provide continuous frames")
+        data = np.array([self._frame_store[j]
+                         for j in range(len(frames))])
+        frame_md = [self._md_store[j]
+                         for j in range(len(frames))]
+
+        return {'data_array': data,
+                'frame_dim': self._frame_dim,
+                'meta_data': self._md,
+                'frame_meta_data': frame_md}
+
+    @property
+    def kwarg_dict(self):
+        dd = super(NPFrameSink, self).kwarg_dict
+        dd['frame_dim'] = self._frame_dim
+        return dd
+
+    def make_source(self):
+        return np_frame_source(**self._clean())
+
+
+class NPImageSink(NPFrameSink, ImageSink):
+    def __init__(self, *args, **kwargs):
+
+        ndim = kwargs.pop('frame_dim', 2)
+        if ndim != 2:
+            raise RuntimeError("frame_dim should be 2")
+        kwargs['frame_dim'] = ndim
+        super(NPImageSink, self).__init__(*args, **kwargs)
+
+    def make_source(self):
+        return NPImageSource(**self._clean())
