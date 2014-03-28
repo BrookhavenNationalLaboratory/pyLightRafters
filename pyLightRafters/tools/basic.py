@@ -3,7 +3,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import six
-
+from six.moves import zip
 import sys
 
 import numpy as np
@@ -163,12 +163,15 @@ def _gen_binary_op_class(opp, doc, name):
         # TODO add checks for resolution matching
         # TODO add meta-data pass through
         with self.A as A, self.B as B:
-            out = opp(A, B)
+            tmp_out = []
+            for a, b in zip(A, B):
+                tmp_out.append(opp(a, b))
 
         self.output_file.set_resolution(self.A.resolution,
                                         self.A.resolution_units)
-        with out as snk:
-            snk.record_frame(out, 0)
+        with self.out as snk:
+            for j, _out_frame in enumerate(tmp_out):
+                snk.record_frame(_out_frame, j)
     #
     new_class = type(str(name), (_base_binary_op,), {"run": run,
                                                      "available": avail,
