@@ -731,15 +731,24 @@ class SequentialSetFileHandler(FileHandler):
         return md
 
 
-class OpaqueFile(SingleFileHandler, BaseSink):
+class OpaqueFileSink(SingleFileHandler, BaseSink):
     """
     That is an excessively complicated way to pass a path into
     a tool.
     """
+    def make_source(self):
+        return OpaqueFileSource(**self.kwarg_dict)
+
+
+class OpaqueFigure(OpaqueFileSink):
+    _extension_filters = (set(('png', 'pdf', 'svg', 'jpg')) |
+                            OpaqueFileSink.handler_extensions())
     pass
 
 
-class OpaqueFigure(OpaqueFile):
-    _extension_filters = (set(('png', 'pdf', 'svg', 'jpg')) |
-                            OpaqueFile.handler_extensions())
+class OpaqueFileSource(SingleFileHandler, BaseSource):
+    """
+    That is an excessively complicated way to pass a path into
+    a tool.
+    """
     pass
