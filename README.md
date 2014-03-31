@@ -3,7 +3,7 @@ pyRafters
 
 Interface layer for CT image processing tools.
 
-[![Build Status](https://travis-ci.org/BrookhavenNationalLaboratory/pyRafters.png?branch=master)](https://travis-ci.org/BrookhavenNationalLaboratory/pyRafters)
+[![Build Status](https://travis-ci.org/NSLS-II/pyRafters.png?branch=master)](https://travis-ci.org/NSLS-II/pyRafters)
 
 Base Classes
 ------------
