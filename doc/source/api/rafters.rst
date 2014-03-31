@@ -5,6 +5,7 @@
 
 .. toctree::
    rafters.handler_base
+   handlers/handlers
    rafters.tools_base
    rafters.args_base
 
