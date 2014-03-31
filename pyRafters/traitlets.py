@@ -1,5 +1,5 @@
 """
-A set of traitlets extensions for pyLightRafters
+A set of traitlets extensions for pyRafters
 """
 
 from __future__ import (absolute_import, division, print_function,

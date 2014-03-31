@@ -1,9 +1,9 @@
-pyLightRafters
+pyRafters
 ==============
 
 Interface layer for CT image processing tools.
 
-[![Build Status](https://travis-ci.org/BrookhavenNationalLaboratory/pyLightRafters.png?branch=master)](https://travis-ci.org/BrookhavenNationalLaboratory/pyLightRafters)
+[![Build Status](https://travis-ci.org/BrookhavenNationalLaboratory/pyRafters.png?branch=master)](https://travis-ci.org/BrookhavenNationalLaboratory/pyRafters)
 
 Base Classes
 ------------
@@ -13,9 +13,9 @@ interface for calling image analysis `Tools`.
 
 class family | purpose | module
 ------------ | ------- | ------
-data handlers | to abstract away the backing method of data storage | `pyLightRafters.handler_base`
-`ArgSpec` | container for all the meta-data about arguments | `pyLightRafters.args_base`
-`ToolBase` | container for all of the meta-data + code to run a given computation | `pyLightRafters.tools_base`
+data handlers | to abstract away the backing method of data storage | `pyRafters.handler_base`
+`ArgSpec` | container for all the meta-data about arguments | `pyRafters.args_base`
+`ToolBase` | container for all of the meta-data + code to run a given computation | `pyRafters.tools_base`
 
 Handlers
 --------
@@ -52,4 +52,4 @@ Example Tools
 
 
 
-The tools in `pyLightRafters.tools` are intended to provide a template for adding new tools.
+The tools in `pyRafters.tools` are intended to provide a template for adding new tools.

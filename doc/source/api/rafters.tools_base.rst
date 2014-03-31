@@ -3,11 +3,11 @@
 ================
 
 
-.. inheritance-diagram:: pyLightRafters.tools_base pyLightRafters.tools pyLightRafters.tools.examples pyLightRafters.tools.basic
+.. inheritance-diagram:: pyRafters.tools_base pyRafters.tools pyRafters.tools.examples pyRafters.tools.basic
    :parts: 3
 
 
-.. automodule:: pyLightRafters.tools_base
+.. automodule:: pyRafters.tools_base
    :members:
    :show-inheritance:
    :undoc-members:

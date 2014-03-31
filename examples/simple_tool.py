@@ -1,5 +1,5 @@
 import numpy as np
-import pyLightRafters as plr
+import pyRafters as plr
 
 # create data
 vals, edges = np.histogram(np.random.randn(50000), 50)

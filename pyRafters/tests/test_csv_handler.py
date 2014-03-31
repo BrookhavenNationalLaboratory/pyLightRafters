@@ -6,9 +6,9 @@ from testing_helpers import namedtmpfile
 from numpy.testing import assert_almost_equal
 import numpy as np
 
-from pyLightRafters.handler_base import RequireActive
+from pyRafters.handler_base import RequireActive
 
-from pyLightRafters.handlers.csv_handler import (csv_dist_sink,
+from pyRafters.handlers.csv_handler import (csv_dist_sink,
                                                  csv_dist_source)
 from nose.tools import raises
 from six.moves import cPickle as pickle

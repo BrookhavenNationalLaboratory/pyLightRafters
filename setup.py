@@ -59,15 +59,15 @@ else:
     FULLVERSION += QUALIFIER
 
 setup(
-    name='pyLightRafters',
+    name='pyRafters',
     version=FULLVERSION,
     author='Brookhaven National Lab',
-    ext_modules=[Extension('_tifffile', ['pyLightRafters/extern/tifffile.c'],
+    ext_modules=[Extension('_tifffile', ['pyRafters/extern/tifffile.c'],
     include_dirs=[numpy.get_include()])],
-    url="https://github.com/BrookhavenNationalLaboratory/pyLightRafters",  # noqa
-    packages=['pyLightRafters',
-              'pyLightRafters.handlers',
-              'pyLightRafters.tools',
-              'pyLightRafters.extern'],
+    url="https://github.com/NSLS-II/pyRafters",  # noqa
+    packages=['pyRafters',
+              'pyRafters.handlers',
+              'pyRafters.tools',
+              'pyRafters.extern'],
     install_requires=['numpy', 'six', 'h5py', 'IPython']
 )

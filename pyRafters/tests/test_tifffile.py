@@ -2,7 +2,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import six
 
-from pyLightRafters.handlers.tiff_handler import (tifffile_read2D_Handler,
+from pyRafters.handlers.tiff_handler import (tifffile_read2D_Handler,
                                                   tifffile_Sink)
 import synthetic_data as sd
 from testing_helpers import namedtmpfile

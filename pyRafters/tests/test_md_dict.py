@@ -7,7 +7,7 @@ import h5py
 from six.moves import xrange
 from nose.tools import assert_equal
 
-from pyLightRafters.utils import MD_dict, md_value
+from pyRafters.utils import MD_dict, md_value
 
 
 def test_string():

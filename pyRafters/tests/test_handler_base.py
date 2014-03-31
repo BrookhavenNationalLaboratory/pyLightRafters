@@ -3,7 +3,7 @@ from __future__ import (absolute_import, division, print_function,
 import six
 
 from nose.tools import raises, assert_equal, assert_true, assert_false
-from pyLightRafters.handler_base import (BaseDataHandler, require_active,
+from pyRafters.handler_base import (BaseDataHandler, require_active,
         require_inactive, RequireActive, RequireInactive)
 
 from six.moves import cPickle as pickle

@@ -2,7 +2,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import six
 from six.moves import range
-from pyLightRafters.handlers.np_handler import (NPFrameSink,
+from pyRafters.handlers.np_handler import (NPFrameSink,
                                                 np_frame_source,
                                                 NPImageSource,
                                                 NPImageSink)

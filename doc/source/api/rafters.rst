@@ -9,7 +9,7 @@
    rafters.tools_base
    rafters.args_base
 
-.. automodule:: pyLightRafters
+.. automodule:: pyRafters
    :members:
    :show-inheritance:
    :undoc-members:
