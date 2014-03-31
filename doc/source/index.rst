@@ -12,7 +12,7 @@ Contents:
    :maxdepth: 2
 
    dev_guide/index
-   reference/tools
+   api/rafters
 
 Indices and tables
 ==================

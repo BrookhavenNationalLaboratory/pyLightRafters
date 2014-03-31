@@ -39,7 +39,9 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
-    'numpydoc'
+    'sphinx.ext.inheritance_diagram',
+    'numpydoc',
+    'IPython.sphinxext.ipython_console_highlighting'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -271,6 +273,10 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+#inheritance_graph_attrs = dict(rankdir="LR",
+#                               size='"60.0, 60.0"')
+#inheritance_node_attrs = dict()
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
