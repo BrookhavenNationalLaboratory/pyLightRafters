@@ -69,6 +69,5 @@ setup(
               'pyLightRafters.handlers',
               'pyLightRafters.tools',
               'pyLightRafters.extern'],
-    install_requires=['numpy', 'six', 'h5py', 'IPython',
-                      'scipy']
-    )
+    install_requires=['numpy', 'six', 'h5py', 'IPython']
+)
