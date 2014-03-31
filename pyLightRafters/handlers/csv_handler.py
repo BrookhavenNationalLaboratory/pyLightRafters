@@ -1,14 +1,15 @@
 """
-A set of sources and sinks for handling
+A set of sources and sinks for handling distributions saved as csv files
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-from ..handler_base import (DistributionSource, SingleFileHandler,
-                            DistributionSink,
-                            FileHandler,
-                            require_active)
-
 import six
+from ..handler_base import (DistributionSource,
+                            DistributionSink,
+                            require_active)
+from .base_file_handlers import SingleFileHandler
+
+
 from six.moves import zip
 import csv
 import numpy as np

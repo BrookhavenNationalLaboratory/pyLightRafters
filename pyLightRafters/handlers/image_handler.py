@@ -3,8 +3,8 @@ from __future__ import (absolute_import, division, print_function,
 
 import six
 
-from ..handler_base import ImageSource, SingleFileHandler, require_active
-
+from ..handler_base import ImageSource, require_active
+from .base_file_handlers import SingleFileHandler
 try:
     from scipy.misc import imread
 except ImportError:

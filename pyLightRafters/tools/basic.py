@@ -108,7 +108,7 @@ class GTThreshold(ToolBase):
             snk.record_frame(res, 0)
 
 
-class _base_binary_op(ToolBase):
+class base_binary_op(ToolBase):
     """
     A template class for building binary operation tools
     for pyLight usage.  This is for operations that take two
@@ -173,7 +173,7 @@ def _gen_binary_op_class(opp, doc, name):
             for j, _out_frame in enumerate(tmp_out):
                 snk.record_frame(_out_frame, j)
     #
-    new_class = type(str(name), (_base_binary_op,), {"run": run,
+    new_class = type(str(name), (base_binary_op,), {"run": run,
                                                      "available": avail,
                                                      '__module__': __name__})
     new_class.__doc__ = doc

@@ -9,7 +9,8 @@ import numpy as np
 
 from ..tools_base import ToolBase
 from ..handler_base import (DistributionSource, DistributionSink,
-                            OpaqueFigure, ImageSource)
+                            ImageSource)
+from ..handlers.base_file_handlers import OpaqueFigure
 
 import IPython.utils.traitlets as traitlets
 

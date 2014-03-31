@@ -5,8 +5,9 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import six
 
-from ..handler_base import (ImageSource, SingleFileHandler,
+from ..handler_base import (ImageSource,
                             require_active, VolumeSource, ImageSink)
+from .base_file_handlers import SingleFileHandler
 from ..extern import tifffile
 
 
