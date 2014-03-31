@@ -3,19 +3,12 @@
 Introduction to Git
 ===================
 
-This is going to start with the assumption that you have git (and
-gitk) installed on your system and have a `github` account which is a
-member of the `BrookhaveNationalLab` organization.
-
-
-
-
 ===============
 Configuring git
 ===============
 
 There are many resources on the web for how to use and configure
-`git`, this is a streamlined reference for use with `pyLight`.  There
+`git`, this is a streamlined reference for use with `pyRafters`.  There
 is a variety of gui front ends for `git`, this will demonstrate the
 command line usage as the lowest-common-denominator.  On windows and
 OSX the `github` applications seems pretty slick and integrates well with
@@ -51,10 +44,10 @@ Forking and  Cloning
 
 The first step to with the code in `github` is to create a personal
 copy of the repository on `github`.  This is accomplished by
-navigating to https://github.com/BrookhavenNationalLaboratory/pyLight
+navigating to https://github.com/NSLS-II/pyRafters
 while logged into `github` and click the **fork** button in the upper
 right hand corner.  Follow the on-screen and you should now a copy of
-the `pyLight` repository attached to your account on `github`.
+the `pyRafters` repository attached to your account on `github`.
 
 
 In order
@@ -63,12 +56,12 @@ done via **cloning** your `github` repository to your machine ::
 
    mkdir ~/my_source  # Any directory will do
    cd ~/my_source     # but this is the scheme I use
-   git clone git@github.com:github_user_name/pyLight.git
+   git clone git@github.com:github_user_name/pyRafters.git
 
 where `github_user_name` is replaced with your user name.  You may be
 asked to unlock your sshkey or authenticate in some way and to accept
 the RSA key of the remote host (say yes).  Once you have done this you
-should have a folder `pyLight` in your current directory which
+should have a folder `pyRafters` in your current directory which
 contains the most up-to-date version of the code.
 
 
@@ -248,9 +241,9 @@ the langague of `git`, **remotes**.  The first remote we will want to
 add in the canonical repository::
 
     # make sure you are in the working directory of your local repo
-    cd ~/my_source/pyLight
+    cd ~/my_source/pyRafters
     # add the canonical repo as 'upstream'
-    git remote add upstream git@github.com:BrookhavenNationalLaboratory/pyLight.git
+    git remote add upstream git@github.com:NSLS-II/pyRafters.git
     # fetch the commits in the new repository
     git fetch upstream
 
@@ -260,10 +253,10 @@ To checkout your handy work run ::
 
 which should print something like: ::
 
-    origin  git@github.com:username/pyLight.git (fetch)
-    origin  git@github.com:username/pyLight.git (push)
-    upstream        git@github.com:BrookhavenNationalLaboratory/pyLight.git (fetch)
-    upstream        git@github.com:BrookhavenNationalLaboratory/pyLight.git (push)
+    origin  git@github.com:username/pyRafters.git (fetch)
+    origin  git@github.com:username/pyRafters.git (push)
+    upstream        git@github.com:NSLS-II/pyRafters.git (fetch)
+    upstream        git@github.com:NSLS-II/pyRafters.git (push)
 
 
 which shows two remotes.  It is recommended to re-name `origin` ->
@@ -275,7 +268,7 @@ which shows two remotes.  It is recommended to re-name `origin` ->
 which is the convention that will be used throughout.  You can also add as a remote the
 github repositories of other group members, ex ::
 
-   git remote add tacaswell git@github.com:tacaswell/pyLight.git
+   git remote add tacaswell git@github.com:tacaswell/pyRafters.git
 
 which will allow you to **fetch** to your local computer any commits they have
 **push**\ ed to github.
