@@ -69,5 +69,6 @@ setup(
               'pyRafters.handlers',
               'pyRafters.tools',
               'pyRafters.extern'],
-    install_requires=['numpy', 'six', 'h5py', 'IPython']
+    install_requires=['numpy', 'six', 'h5py', 'IPython',
+                      'networkx']
 )
