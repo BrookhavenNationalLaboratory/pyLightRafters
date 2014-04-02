@@ -187,9 +187,6 @@ _bin_op_list = [
      'SubtractImages'),
     (np.multiply, 'Multiply images A and B element wise(A * B)',
      'MultImages'),
-    (np.divide, ('Divide images A and B element wise (A / B)\n' +
-                 'Output type depends on input types'),
-     'DivideImages'),
     (np.true_divide, ('Divide images A and B element wise (A / B)\n' +
                  'Always returns floats.'),
                  'TrueDivideImages'),
