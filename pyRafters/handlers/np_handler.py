@@ -228,6 +228,9 @@ class NPFrameSink(FrameSink):
         self._md.update(md_dict)
 
     def _clean(self):
+        # TODO, maybe this should return an empty handler
+        if len(self._frame_store) == 0:
+            raise ValueError("did not provide any frames")
         frames = np.array(list(
             six.iterkeys(self._frame_store)))
         if (np.min(frames) != 0 or
