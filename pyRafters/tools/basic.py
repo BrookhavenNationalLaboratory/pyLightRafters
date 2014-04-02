@@ -68,7 +68,7 @@ class LTThreshold(ToolBase):
     output_file = traitlets.Instance(klass=ImageSink,
                                     tooltip='Image File',
                                     label='output')
-    max_val = traitlets.Float(1, tooltip='Maximum Value', label='max_val')
+    min_val = traitlets.Float(1, tooltip='Minimum Value', label='min_val')
 
     def run(self):
         with self.input_file as src:
