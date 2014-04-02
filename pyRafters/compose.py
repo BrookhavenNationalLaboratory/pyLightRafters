@@ -63,7 +63,7 @@ def _proc_subtools(tool, input_edges, output_edges, args):
     pass
 
 
-def run_graph(G, g_inputs):
+def _node_iter(G, g_inputs):
     """
     Run a graph
 
@@ -97,4 +97,9 @@ def run_graph(G, g_inputs):
         args = g_inputs[job]
 
         # push work off to helper function
-        _proc_subtools(job, in_link_info, out_link_info, args)
+        yield (job, in_link_info, out_link_info, args)
+
+
+def run_graph(G, g_inputs):
+    for node_data in _node_iter(G, g_inputs):
+        _proc_subtools(*node_data)
