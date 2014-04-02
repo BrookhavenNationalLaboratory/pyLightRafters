@@ -6,8 +6,6 @@ from pyRafters.handlers.np_handler import (NPFrameSink,
                                                 np_frame_source,
                                                 NPImageSource,
                                                 NPImageSink)
-import synthetic_data as sd
-from testing_helpers import namedtmpfile
 import numpy as np
 from numpy.testing import assert_array_equal
 from nose.tools import assert_true, assert_equal, raises
