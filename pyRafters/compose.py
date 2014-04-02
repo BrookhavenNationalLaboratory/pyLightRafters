@@ -17,38 +17,41 @@ from pyRafters.handler_base import ImageSink
 _handler_map = {ImageSink: NPImageSink}
 
 
-def _proc_subtools(G, tool, args):
+def _proc_subtools(tool, input_edges, output_edges, args):
     """
     Collects inputs and runs the sub-tool
 
     Parameters
     ----------
-    G : nx.DiGraph
-        The topology of the tool
-
     tool : ToolBase
-        The sub-component to run
+        The Tool to run
 
-    global_input : dict?
-        The input to the DAG
+    input_edges : dict
+       keyed on ancestor tool instances, value is list of
+       pairs of strings labeling connections between input/output
+
+    output_edges : dict
+       keyed on descendant tool instances.  value is list
+       of pairs of strings labeling connections between input/output
     """
     # grab list of traits from tool
     params, srcs, snks = tool.tool_args()
-
-    # grab input edges to this tool
-    input_edges = G.in_edges(tool)
-
-    # grab the source/snk connections from each edge
-    for back, this in input_edges:
-
-        for snk_nm, src_nm in G[back][this]['links']:
+    # loop over ancestor tools and link lists
+    for back, links in six.iteritems(input_edges):
+        # loop over links
+        for snk_nm, src_nm in links:
+            # get the sink from the ancestor
+            print(back)
+            print(snk_nm)
+            print(src_nm)
             snk = getattr(back, snk_nm)
-            # turn sinks to sources
+            # turn sink into source
             src = snk.make_source()
-            setattr(this, src_nm, src)
+            # assign the source to the new sink
+            setattr(tool, src_nm, src)
 
-    # sort out what global input this tool has
-    for arg_nm, arg_val in six.iteritems(args[tool]):
+    # loop over the input args for the tool
+    for arg_nm, arg_val in six.iteritems(args):
         setattr(tool, arg_nm, arg_val)
 
     # make sure we assign all of the sinks
@@ -77,5 +80,21 @@ def run_graph(G, g_inputs):
     # sort the tools by topological order so all needed inputs are
     # available
     for job in nx.topological_sort(G):
-        # call helper function to actually do the work
-        _proc_subtools(G, job, g_inputs)
+        # get input edges
+        input_edges = G.in_edges(job)
+        in_link_info = dict()
+        # construct dict of useful information
+        for parent, child in input_edges:
+            print(parent, child)
+            in_link_info[parent] = G[parent][child]['links']
+        # get output edges
+        output_edges = G.out_edges(job)
+        out_link_info = dict()
+        # construct dict of useful information
+        for parent, child in output_edges:
+            out_link_info[child] = G[parent][child]['links']
+        # pull the tool args out of the global dict
+        args = g_inputs[job]
+
+        # push work off to helper function
+        _proc_subtools(job, in_link_info, out_link_info, args)
