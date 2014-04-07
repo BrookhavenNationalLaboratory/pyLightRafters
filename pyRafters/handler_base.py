@@ -570,6 +570,37 @@ class ImageSource(FrameSource):
     pass
 
 
+class RawTomoData(ImageSource):
+    """
+    Class for representing raw tomographic data
+    """
+    @abstractmethod
+    def iter_by_sinogram(self):
+        """
+        Return sinograms (\theta, x) as a function of y
+
+        Returns
+        -------
+        by_sino : generator
+            Yields sinograms to get y-value enumerate and use
+            resolution to covert voxel -> real units
+        """
+        pass
+
+    @abstractmethod
+    def iter_by_projection(self):
+        """
+        Iterate by projection.
+
+        Returns
+        -------
+        by_proj : generator
+            Yields projects.  To get angle values enumerate and
+            convert to deg/rad via resolution values.
+        """
+        pass
+
+
 class VolumeSource(FrameSource):
     """
     Classes where `get_frame` returns 3D arrays (volume)
