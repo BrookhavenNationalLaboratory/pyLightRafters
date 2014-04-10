@@ -74,3 +74,44 @@ def gradient_2D(shape, offset=0, flipud=False,
         tmp = tmp.astype(dtype)
 
     return tmp
+
+
+def sinsin(shape, k1, k2, dtype=None, scale=128, p1=0, p2=0):
+    """
+    Generates an image of the form Z = sin(k1 * x) * sin(k2 * y) + 1
+
+    with x, y in [0, 2*np.pi) and sampled at shape points
+
+    Parameters
+    ----------
+    shape : tuple
+       Shape of output image, should be length 2
+
+    k1, k2 : scalar
+       Spatial frequency of sin
+
+    dtype : np.dtype or str
+       The target data type
+
+    scale : scalar
+       Scale factor, there is a rouge factor of 2 from shifting
+       the data to be always positive, max value will be 2 * scale
+
+    p1, p2 : scalar
+       Phase shift, defaults to 0
+
+    Returns
+    -------
+    ret : ndarray
+        single 2D image
+    """
+    if dtype is None:
+        dtype = np.uint8
+
+    X = np.linspace(0, 2*np.pi, shape[0]).reshape(-1, 1)
+    Y = np.linspace(0, 2*np.pi, shape[0]).reshape(1, -1)
+
+    sX = np.sin(k1 * X + p1)
+    sY = np.sin(k2 * Y + p2)
+
+    return (scale * (sX * sY + 1)).astype(dtype)
