@@ -638,3 +638,73 @@ class DistributionSink(BaseSink):
            if True, include the right edge of the last bin in the data.
         """
         pass
+
+
+class TableSink(BaseSink):
+    """
+    An ABC for sequences of tables
+    """
+    @abstractmethod
+    def write_table(self, rec_array, table_name):
+        """
+        Sink a table from a record array/numpy array with
+        compound data types
+
+        Parameters
+        ----------
+        rec_array : ndarray/recarray
+            The table data to be sunk
+
+        table_name : str
+            Name of the table
+        """
+        pass
+
+
+class TableSource(BaseSource):
+    """
+    An ABC for sequences of tables
+    """
+    @abstractmethod
+    def read_table(self, table_name):
+        """
+        Source a table
+
+        Parameters
+        ----------
+        table_name : str
+            The name of the table to be retrieve
+
+        Returns
+        -------
+        rec_array : ndarray with compound datatype
+            The returned data
+        """
+        pass
+
+    @require_active
+    def iter_tables(self):
+        """
+        Iterate through all tables in source
+
+        Returns
+        -------
+        gen : generator
+           Generator which yields ndarrays with
+           compound data types
+        """
+        keys = self.table_keys()
+        for k in keys:
+            yield self.read_table(k)
+
+    @abstractmethod
+    def table_keys(self):
+        """
+        Return an iterable of the tables in this source
+
+        Returns
+        -------
+        keys : iterable
+           iterable of strings which are the table names
+        """
+        pass
