@@ -4,7 +4,6 @@ from __future__ import (absolute_import, division, print_function,
 import six
 import networkx as nx
 import numpy as np
-import six
 
 from pyRafters.tools.basic import AddImages
 from pyRafters.tools.examples import ImageHistogram
