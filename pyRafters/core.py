@@ -192,13 +192,6 @@ class sparray(ndarray):
         reprs += [repr(self.view(ndarray)), ]
         return '\n'.join(reprs)
 
-    def swapaxes(self, a, b):
-        raise NotImplemented()
-
-    def reshape(self, *args, **kwargs):
-        # rather than try to deal with re-shape conditions, just down-cast
-        return self.view(ndarray).reshape(*args, **kwargs)
-
     def transpose(self, *args, **kwargs):
         print('in transpose')
         print(args)
@@ -211,14 +204,68 @@ class sparray(ndarray):
             raise NotImplemented('write swap-axis case')
         return ret
 
+    # TODO sort out how this really works for ndarrays
     @property
     def T(self):
         return self.transpose()
 
+    # set of functions that are run through reduce,
+    # there should be a way to deal with all of these
+    # the same
+    def max(self, **kwargs):
+        raise NotImplemented()
 
-def _np_down_cast(cls, func_name):
+    def min(self, **kwargs):
+        raise NotImplemented()
+
+    def mean(self, **kwargs):
+        raise NotImplemented()
+
+    def prod(self, **kwargs):
+        raise NotImplemented()
+
+    def sum(self, **kwargs):
+        raise NotImplemented()
+
+    def var(self, **kwargs):
+        raise NotImplemented()
+
+    def swapaxes(self, a, b):
+        raise NotImplemented()
+
+    def cumsum(self, **kwargs):
+        raise NotImplemented()
+
+    def cumprod(self, **kwargs):
+        raise NotImplemented()
+
+    def ptp(self, *args, **kwargs):
+        raise NotImplemented()
+
+    # specializations
+    def tofile(self, *args, **kwargs):
+        # wrap to include MD if possible
+        raise NotImplemented()
+
+
+_down_cast_fun = ('argpartition', 'compress', 'choose', 'dot',
+                   'partition', 'sort', 'argsort', 'repeat',
+                   'reshape', 'take', 'argmax', 'argmin', 'diagonal',
+                    'flatten', 'nonzero', 'ravel', 'trace')
+
+
+def _np_down_cast(func):
     """
     helper function that generates a down-casting function
     for operations that
     """
-    pass
+    @wraps(func)
+    def inner(self, *args, **kwargs):
+        func(self.view(ndarray), *args, **kwargs)
+
+
+
+# _dontunderstand = ('setfield', 'getfieild')
+
+# _should_work = ('astype', 'fill', 'put', 'dump',  'searchsorted', 'clip',
+#                'item', 'itemset',)
