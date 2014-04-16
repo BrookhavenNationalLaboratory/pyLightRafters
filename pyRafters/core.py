@@ -10,9 +10,8 @@ from six.moves import range, zip
 from numpy import ndarray, asarray
 import numpy as np
 from itertools import chain
-from functools import wraps
 
-# code relies on order of these tuples, do not change it
+
 # added attributes which know about the axis information
 _axis_attrs = ('axis_labels', 'axis_units', 'axis_offsets',
           'voxel_size')
@@ -259,11 +258,19 @@ def _np_down_cast(func):
     helper function that generates a down-casting function
     for operations that
     """
-    @wraps(func)
+
     def inner(self, *args, **kwargs):
-        func(self.view(ndarray), *args, **kwargs)
+        print('down casting')
+        return func(self.view(ndarray), *args, **kwargs)
+    inner.__name__ = func.__name__
+    inner.__doc__ = func.__doc__
 
+    return inner
 
+for func_name in _down_cast_fun:
+    print(func_name)
+    func = getattr(ndarray, func_name)
+    setattr(sparray, func_name, _np_down_cast(func))
 
 # _dontunderstand = ('setfield', 'getfieild')
 
