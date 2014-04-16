@@ -1,0 +1,86 @@
+
+Everything is assumed to carry around a dictionary of arbitrary
+other meta-data which is un-related to the accessing of the data.  For
+example, this dictionary might contain information like run number,
+phase of the moon, keys to look stuff up in other databases.
+
+* slicable ND array (GridData)
+** use-case
+ - f(t)
+ - x,y
+ - x,y,f(t)
+ - x,y,(theta)
+ - x,y,z
+ - x,y,z,f(t)
+ - x,y,z,E
+ - x,y,z,E,f(t)
+
+** requriements
+ - n-dimennions
+ - know units and values of axes
+ - be able to select up to n-1 axes to iterate over
+   - specify order of cycling
+ - use all standard np slicing
+ - return regions based on bounds in units
+ - returned objects are of same type (or better)
+ - deal with out-of-core data
+   - h5py style, slicing into these objects return
+     the in-core version full of data
+ - know if continuous or labeled data
+ - provide access to axes units
+ - allow for off sets in units (ie, specify the location of (0, ...) )
+** constraints
+ - evenly spaced along each axis?
+ - homogeneous datatype
+
+* in-core sliceable ND array (GridData)
+same as above, but must be drop-in replacement for
+numpy arrays.  This includes basic numpy functionality
+must work + all third party libraries.  This basically
+constrains us to extent numpy array to get the magic
+of c-extensions to work (see pandas issues with matplotlib
+for issues with duck typing)
+
+
+* table (irregular_data)
+Same idea as a DB table, all columns and rows filled.
+column is fixed data type, rows can be heterogeneous.
+Columns know name and units
+ - backed by np-recarray
+ - backed by sql* (sqlalchemy?)
+ - backed by dictionary (mongodb?)
+ - backed by pandas
+** use cases
+ - results of image proc
+   - contour paths
+   - stats on labeled regions
+   - tracking results
+ - meta-data
+
+** requirements
+ - source column meta-data
+ - select by row
+ - iter by rows
+ - select by column
+ - filtering?
+   - sub-class you can throw sql queries at?
+
+** constraints
+ - columns are fixed width (mostly applies to strings)
+
+* slicable ND point cloud (PointSet)
+looks like specialization of table, but should be done with kd-tree
+or hash table
+** use cases
+ - recpricoal space data
+ - sparse representation of data
+
+** requirements
+ - on-the-fly rebinned slices
+ - nearest neighbors in ball
+ - replicate table interface
+** constraints
+ - units in all dimensions must be the same (so distance logic works)
+
+* Mesh
+ - PointSet + topology
