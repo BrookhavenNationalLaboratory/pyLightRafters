@@ -38,22 +38,18 @@ class NormalizeDist(ToolBase):
             raise ValueError("input source must be not-none")
         if self.output_dist is None:
             raise ValueError("output sink must be not-none")
-        # activate i/o
-        self.input_dist.activate()
-        self.output_dist.activate()
+
         # grab data from input
-        tmp_val = np.array(self.input_dist.values(), dtype='float')
+        with self.input_dist as src:
+            tmp_val = np.array(src.values(), dtype='float')
+            edges = src.bin_edges()
+
         # scale data
         tmp_val *= self.norm_val / np.sum(tmp_val)
-        # get the edges
-        edges = self.input_dist.bin_edges()
 
         # write results out
-        self.output_dist.write_dist(edges, tmp_val)
-
-        # shut down the i/o
-        self.input_dist.deactivate()
-        self.output_dist.deactivate()
+        with self.output_dist as snk:
+            snk.write_dist(edges, tmp_val)
 
 
 class PlotDist(ToolBase):
@@ -75,21 +71,21 @@ class PlotDist(ToolBase):
             import matplotlib.pyplot as plt
 
             # activate and grab input data
-            self.input_dist.activate()
-            tmp_val = self.input_dist.values()
-            edges = self.input_dist.bin_edges()
+            with self.input_dist as src:
+                tmp_val = src.values()
+                edges = src.bin_edges()
 
+            # set up the plot
             fig, ax = plt.subplots(1, 1)
             ax.set_xlabel('bins')
             ax.set_ylabel('vals')
+            # plot
+            ax.step(edges, tmp_val, where='post', color='k')
 
-            ax.step(edges, tmp_val, where='post')
-
-            self.out_file.activate()
-            fname = self.out_file.backing_file
-            fig.savefig(fname)
-            self.input_dist.deactivate()
-            self.out_file.deactivate()
+            #
+            with self.out_file as snk:
+                fname = snk.backing_file
+                fig.savefig(fname)
 
         except Exception as e:
             print(e)
