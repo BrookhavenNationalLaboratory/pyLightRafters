@@ -22,9 +22,11 @@ class scipy_imread_Handler(SingleFileHandler, ImageSource):
                           'jpeg', 'tiff',
                           'bnp'} | SingleFileHandler._extension_filters
 
-    def __init__(self, fname):
+    def __init__(self, fname, resolution=None, resolution_units=None):
         # don't need to do anything but pass up the MRO
-        super(scipy_imread_Handler, self).__init__(fname=fname)
+        super(scipy_imread_Handler, self).__init__(fname=fname,
+                                            resolution_units=resolution_units,
+                                            resolution=resolution)
 
     def __len__(self):
         # TODO make this not hard-coded
