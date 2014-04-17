@@ -42,11 +42,11 @@ class NormalizeDist(ToolBase):
         self.input_dist.activate()
         self.output_dist.activate()
         # grab data from input
-        tmp_val = np.array(self.input_dist.read_values(), dtype='float')
+        tmp_val = np.array(self.input_dist.values(), dtype='float')
         # scale data
         tmp_val *= self.norm_val / np.sum(tmp_val)
         # get the edges
-        edges = self.input_dist.read_edges()
+        edges = self.input_dist.bin_edges()
 
         # write results out
         self.output_dist.write_dist(edges, tmp_val)
@@ -68,27 +68,31 @@ class PlotDist(ToolBase):
                                     label='output')
 
     def run(self):
-        # import mpl and set non-gui backend
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
+        try:
+            # import mpl and set non-gui backend
+            import matplotlib
+            matplotlib.use('Agg')
+            import matplotlib.pyplot as plt
 
-        # activate and grab input data
-        self.input_dist.activate()
-        tmp_val = self.input_dist.read_values()
-        edges = self.input_dist.read_edges()
+            # activate and grab input data
+            self.input_dist.activate()
+            tmp_val = self.input_dist.values()
+            edges = self.input_dist.bin_edges()
 
-        fig, ax = plt.subplots(1, 1)
-        ax.set_xlabel('bins')
-        ax.set_ylabel('vals')
+            fig, ax = plt.subplots(1, 1)
+            ax.set_xlabel('bins')
+            ax.set_ylabel('vals')
 
-        ax.step(edges, tmp_val, where='post')
+            ax.step(edges, tmp_val, where='post')
 
-        self.out_file.activate()
-        fname = self.out_file.backing_file
-        fig.savefig(fname)
-        self.input_dist.deactivate()
-        self.out_file.deactivate()
+            self.out_file.activate()
+            fname = self.out_file.backing_file
+            fig.savefig(fname)
+            self.input_dist.deactivate()
+            self.out_file.deactivate()
+
+        except Exception as e:
+            print(e)
 
 
 class HelloWorld(ToolBase):
