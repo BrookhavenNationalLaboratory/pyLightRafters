@@ -7,10 +7,9 @@ from __future__ import (absolute_import, division, print_function,
 
 import six
 from six.moves import range, zip
-from numpy import ndarray, asarray
+from numpy import ndarray, asarray, array, arange
 import numpy as np
 from itertools import chain
-
 
 # added attributes which know about the axis information
 _axis_attrs = ('axis_labels', 'axis_units', 'axis_offsets',
@@ -37,12 +36,12 @@ def _make_default_md(obj, axis_labels, axis_units,
     # the origin in pixel space
     if axis_offsets is None:
         # default to no offset
-        axis_offsets = asarray((0, ) * obj.ndim)
+        axis_offsets = np.zeros(obj.ndim, dtype=np.float64)
 
     # the axial size of the voxels
     if voxel_size is None:
         # if not given, default to 1 to match the assumption of pixels
-        voxel_size = asarray((1, ) * obj.ndim)
+        voxel_size = np.ones(obj.ndim, dtype=np.float64)
 
     # deal with arbitrary pass-through meta-data
     if metadata is None:
@@ -71,7 +70,6 @@ def _validate_md(obj, axis_labels, axis_units,
     ld = locals()
     # validate the things that need to match the dimension
     for k in _axis_attrs:
-        print((k, len(ld[k]), ndims))
         if len(ld[k]) != ndims:
             raise ValueError(_validate_err_msg.format(
                 k=k, ln=len(ld[k]), ndim=ndims))
@@ -107,23 +105,20 @@ class sparray(ndarray):
 
     def __array_finalize__(self, obj):
         print("__array_finalize__")
-        print("   obj:" + str(type(obj)))
-        print("   self:" + str(type(self)))
         # if obj is None, then coming from __new__, return
         if obj is None:
             return
-        print(self)
-        print(obj)
         # if obj is not none, then either view or template
         # as obj can be _any_ subclass of ndarray,
         input_args = {k: getattr(obj, k, None) for k in
                       chain(_axis_attrs, _array_attrs)}
-        print(input_args)
         args = _make_default_md(self, **input_args)
-        print(args)
         _validate_md(self, *args)
-        print('validated')
         for k, v in zip(chain(_axis_attrs, _array_attrs), args):
+            if isinstance(v, ndarray):
+                # if an array, make a copy
+                v = array(v)
+
             setattr(self, k, v)
 
     # bump up priority
@@ -145,7 +140,7 @@ class sparray(ndarray):
         # still have no sorted out why this happens for ndarrays, but not
         # sub-classes.  However, this seems like the correct behavior as it
         # will not silently clobber subclasses -> scalars
-        if out_arr.size == 1:
+        if out_arr.ndim == 0:
             # explicitly clobber subclass -> scalar
             return out_arr[()]
         return ndarray.__array_wrap__(self, out_arr, context)
@@ -173,6 +168,7 @@ class sparray(ndarray):
         #print("__getitem__")
         # if all slices, be smart
         if (isinstance(key, tuple) and len(key) == self.ndim
+             and len(key) > 0
              and all(isinstance(_, slice) for _ in key)):
             res = ndarray.__getitem__(self, key)
             starts, _, stride = list(zip(*[slc.indices(n) for
@@ -193,8 +189,6 @@ class sparray(ndarray):
 
     def transpose(self, *args, **kwargs):
         print('in transpose')
-        print(args)
-        print(kwargs)
         ret = super(sparray, self).transpose(*args, **kwargs)
         if len(args) == 0:
             for k in _axis_attrs:
@@ -208,37 +202,7 @@ class sparray(ndarray):
     def T(self):
         return self.transpose()
 
-    # set of functions that are run through reduce,
-    # there should be a way to deal with all of these
-    # the same
-    def max(self, **kwargs):
-        raise NotImplemented()
-
-    def min(self, **kwargs):
-        raise NotImplemented()
-
-    def mean(self, **kwargs):
-        raise NotImplemented()
-
-    def prod(self, **kwargs):
-        raise NotImplemented()
-
-    def sum(self, **kwargs):
-        raise NotImplemented()
-
-    def var(self, **kwargs):
-        raise NotImplemented()
-
     def swapaxes(self, a, b):
-        raise NotImplemented()
-
-    def cumsum(self, **kwargs):
-        raise NotImplemented()
-
-    def cumprod(self, **kwargs):
-        raise NotImplemented()
-
-    def ptp(self, *args, **kwargs):
         raise NotImplemented()
 
     # specializations
@@ -271,6 +235,109 @@ for func_name in _down_cast_fun:
     print(func_name)
     func = getattr(ndarray, func_name)
     setattr(sparray, func_name, _np_down_cast(func))
+
+_array_reduce_func = ('max', 'min', 'mean', 'prod', 'sum', 'var',
+        'cumsum', 'cumprod', 'ptp')
+
+
+def _np_reduce_axis(func):
+    """
+    Helper function for wrapping functions that collapse axis.
+
+    They must take the kwargs `axis` and `keepdims`
+    """
+    def inner(self, axis=None, keepdims=None, *args, **kwargs):
+        if axis is None:
+            # default to reducing along all axes
+            axis = tuple(range(self.ndim))
+        else:
+            axis = tuple(np.atleast_1d(axis))
+        if keepdims is None:
+            # default to dropping dimensions
+            # We may want to do this, but numpy functions will assume
+            # the default is False which may break things
+            keepdims = False
+
+        print(axis)
+        print(keepdims)
+        # down cast to ndarray to call function
+        tmp_res = func(self.view(ndarray), axis=axis,
+                       keepdims=keepdims, *args, **kwargs)
+        # up-cast the result
+        res = asarray(tmp_res).view(sparray)
+
+        # propagate the axis meta-data
+        if keepdims:
+            # in this case, preserve labels, but
+            # squash
+            res.__array_finalize__(self)
+            print(res)
+            for ax in axis:
+                print(ax)
+                old_offset = self.axis_offsets[ax]
+                old_count = self.shape[ax]
+                old_voxel_size = self.voxel_size[ax]
+
+                res.voxel_size[ax] = (old_voxel_size * old_count)
+                res.axis_offsets[ax] = (old_offset - old_voxel_size/2 +
+                                        res.voxel_size[ax]/2)
+
+            print(res)
+        else:
+            # so we have lost some axis
+            # make sure the axis labels are sorted
+            res.d_id = self.d_id
+            res.label_data = self.label_data
+            # make sure we make a copy of the dict, not just keep a ref
+            res.metadata = dict()
+            res.metadata.update(self.metadata)
+
+            # set of axis we will be skipping
+            if np.isscalar(axis):
+                axis_set = set([axis, ])
+            else:
+                axis_set = set(axis)
+            # internal helper
+            _res_axis = 0
+            new_units = []
+            new_labels = []
+            for ax in range(self.ndim):
+                # pull all the data from the current object
+                old_offset = self.axis_offsets[ax]
+                old_voxel_size = self.voxel_size[ax]
+                old_label = self.axis_labels[ax]
+                old_unit = self.axis_units[ax]
+                # sort out what to do with it
+                if ax in axis_set:
+                    # then we are dropping this axis
+                    # TODO make sure this does not clobber MD
+                    old_count = self.shape[ax]
+
+                    res.metadata[old_label + '_avg'] = (
+                        (old_offset - old_voxel_size/2 +
+                            (old_voxel_size * old_count)/2))
+                    res.metadata[old_label + '_unit'] = old_unit
+                else:
+                    # we are keeping this axis!
+                    new_labels.append(old_label)
+                    new_units.append(old_unit)
+                    res.voxel_size[_res_axis] = old_voxel_size
+                    res.axis_offsets[_res_axis] = old_offset
+                    _res_axis += 1
+            res.axis_labels = new_labels
+            res.axis_units = new_units
+        # TODO
+        return self.__array_wrap__(res)
+
+    inner.__name__ = func.__name__
+    inner.__doc__ = func.__doc__
+
+    return inner
+
+
+for func_name in _array_reduce_func:
+    func = getattr(ndarray, func_name)
+    setattr(sparray, func_name, _np_reduce_axis(func))
 
 # _dontunderstand = ('setfield', 'getfieild')
 
