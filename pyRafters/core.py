@@ -37,11 +37,13 @@ def _make_default_md(obj, axis_labels, axis_units,
     if axis_offsets is None:
         # default to no offset
         axis_offsets = np.zeros(obj.ndim, dtype=np.float64)
+    axis_offsets = asarray(axis_offsets)
 
     # the axial size of the voxels
     if voxel_size is None:
         # if not given, default to 1 to match the assumption of pixels
         voxel_size = np.ones(obj.ndim, dtype=np.float64)
+    voxel_size = asarray(voxel_size)
 
     # deal with arbitrary pass-through meta-data
     if metadata is None:
@@ -210,6 +212,42 @@ class sparray(ndarray):
         # wrap to include MD if possible
         raise NotImplemented()
 
+    def _truncate_axis_md(self, res, axis_set):
+        """
+        Private helper function to deal with copy only _some_ of the
+        information across when a function reduces the number of axis
+        """
+        _res_axis = 0
+        new_units = []
+        new_labels = []
+        for ax in range(self.ndim):
+            # pull all the data from the current object
+            old_offset = self.axis_offsets[ax]
+            old_voxel_size = self.voxel_size[ax]
+            old_label = self.axis_labels[ax]
+            old_unit = self.axis_units[ax]
+            # sort out what to do with it
+            if ax in axis_set:
+                # then we are dropping this axis
+                # TODO make sure this does not clobber MD
+                old_count = self.shape[ax]
+
+                res.metadata[old_label + '_avg'] = (
+                    (old_offset - old_voxel_size/2 +
+                        (old_voxel_size * old_count)/2))
+                res.metadata[old_label + '_unit'] = old_unit
+            else:
+                # we are keeping this axis!
+                new_labels.append(old_label)
+                new_units.append(old_unit)
+                res.voxel_size[_res_axis] = old_voxel_size
+                res.axis_offsets[_res_axis] = old_offset
+                _res_axis += 1
+
+        res.axis_labels = new_labels
+        res.axis_units = new_units
+        return self.__array_wrap__(res)
+
 
 _down_cast_fun = ('argpartition', 'compress', 'choose', 'dot',
                    'partition', 'sort', 'argsort', 'repeat',
@@ -236,8 +274,10 @@ for func_name in _down_cast_fun:
     func = getattr(ndarray, func_name)
     setattr(sparray, func_name, _np_down_cast(func))
 
-_array_reduce_func = ('max', 'min', 'mean', 'prod', 'sum', 'var',
-        'cumsum', 'cumprod', 'ptp')
+# first set of functions which get run through the reduce framework
+# these functions default to calling the function on all axis if
+# axis = None
+_array_reduce_func = ('max', 'min', 'mean', 'prod', 'sum', 'var')
 
 
 def _np_reduce_axis(func):
@@ -247,6 +287,7 @@ def _np_reduce_axis(func):
     They must take the kwargs `axis` and `keepdims`
     """
     def inner(self, axis=None, keepdims=None, *args, **kwargs):
+        # TODO fix default behavior for cumsum, cumprod, ptp
         if axis is None:
             # default to reducing along all axes
             axis = tuple(range(self.ndim))
@@ -282,7 +323,8 @@ def _np_reduce_axis(func):
                 res.axis_offsets[ax] = (old_offset - old_voxel_size/2 +
                                         res.voxel_size[ax]/2)
 
-            print(res)
+            return self.__array_wrap__(res)
+
         else:
             # so we have lost some axis
             # make sure the axis labels are sorted
@@ -297,37 +339,8 @@ def _np_reduce_axis(func):
                 axis_set = set([axis, ])
             else:
                 axis_set = set(axis)
-            # internal helper
-            _res_axis = 0
-            new_units = []
-            new_labels = []
-            for ax in range(self.ndim):
-                # pull all the data from the current object
-                old_offset = self.axis_offsets[ax]
-                old_voxel_size = self.voxel_size[ax]
-                old_label = self.axis_labels[ax]
-                old_unit = self.axis_units[ax]
-                # sort out what to do with it
-                if ax in axis_set:
-                    # then we are dropping this axis
-                    # TODO make sure this does not clobber MD
-                    old_count = self.shape[ax]
 
-                    res.metadata[old_label + '_avg'] = (
-                        (old_offset - old_voxel_size/2 +
-                            (old_voxel_size * old_count)/2))
-                    res.metadata[old_label + '_unit'] = old_unit
-                else:
-                    # we are keeping this axis!
-                    new_labels.append(old_label)
-                    new_units.append(old_unit)
-                    res.voxel_size[_res_axis] = old_voxel_size
-                    res.axis_offsets[_res_axis] = old_offset
-                    _res_axis += 1
-            res.axis_labels = new_labels
-            res.axis_units = new_units
-        # TODO
-        return self.__array_wrap__(res)
+            return self._truncate_axis_md(res, axis_set)
 
     inner.__name__ = func.__name__
     inner.__doc__ = func.__doc__
@@ -338,6 +351,41 @@ def _np_reduce_axis(func):
 for func_name in _array_reduce_func:
     func = getattr(ndarray, func_name)
     setattr(sparray, func_name, _np_reduce_axis(func))
+
+
+# second set of functions that get run through reduce, they seem to
+# work by defaulting to calling the function on d.ravel() and do
+# not accept the keepdims kwarg
+_array_reduce_func_other = ('cumsum', 'cumprod', 'ptp')
+
+
+def _other_reduce_wrapper(func):
+    """
+    Helper function for wrapping functions that collapse axis.
+
+    They must take the kwargs `axis` and do not take keepdims
+    """
+    def inner(self, axis=None, *args, **kwargs):
+        if axis is None:
+            # if axis is None, just down-cast as the array is
+            # getting raveled
+            return func(self.view(ndarray), axis, *args, **kwargs)
+        else:
+            # call the underlying function
+            res = func(self.view(ndarray), axis, *args, **kwargs)
+            res = asarray(res).view(sparray)
+
+            return self._truncate_axis_md(res, set((axis, )))
+
+    inner.__name__ = func.__name__
+    inner.__doc__ = func.__doc__
+
+    return inner
+
+for func_name in _array_reduce_func_other:
+    func = getattr(ndarray, func_name)
+    setattr(sparray, func_name, _other_reduce_wrapper(func))
+
 
 # _dontunderstand = ('setfield', 'getfieild')
 
