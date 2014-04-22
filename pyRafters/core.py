@@ -89,7 +89,7 @@ def _validate_md(obj, axis_labels, axis_units,
     #     constrain that one yet
 
 
-class sparray(ndarray):
+class GridData(ndarray):
     "Extends a numpy array with meta information"
     # See http://docs.scipy.org/doc/numpy/user/basics.subclassing.html
 
@@ -197,7 +197,7 @@ class sparray(ndarray):
 
     def transpose(self, *args, **kwargs):
         print('in transpose')
-        ret = super(sparray, self).transpose(*args, **kwargs)
+        ret = super(GridData, self).transpose(*args, **kwargs)
         if len(args) == 0:
             for k in _axis_attrs:
                 setattr(ret, k, getattr(self, k)[::-1])
@@ -278,7 +278,7 @@ def _np_down_cast(func):
 for func_name in _down_cast_fun:
     print(func_name)
     func = getattr(ndarray, func_name)
-    setattr(sparray, func_name, _np_down_cast(func))
+    setattr(GridData, func_name, _np_down_cast(func))
 
 # first set of functions which get run through the reduce framework
 # these functions default to calling the function on all axis if
@@ -311,7 +311,7 @@ def _np_reduce_axis(func):
         tmp_res = func(self.view(ndarray), axis=axis,
                        keepdims=keepdims, *args, **kwargs)
         # up-cast the result
-        res = asarray(tmp_res).view(sparray)
+        res = asarray(tmp_res).view(GridData)
 
         # propagate the axis meta-data
         if keepdims:
@@ -356,7 +356,7 @@ def _np_reduce_axis(func):
 
 for func_name in _array_reduce_func:
     func = getattr(ndarray, func_name)
-    setattr(sparray, func_name, _np_reduce_axis(func))
+    setattr(GridData, func_name, _np_reduce_axis(func))
 
 
 # second set of functions that get run through reduce, they seem to
@@ -379,7 +379,7 @@ def _other_reduce_wrapper(func):
         else:
             # call the underlying function
             res = func(self.view(ndarray), axis, *args, **kwargs)
-            res = asarray(res).view(sparray)
+            res = asarray(res).view(GridData)
             # ptp is a special snow flake, does not take iterables
             # for axis, does not take keepdims, but _does_ eat an axis
             if func.__name__ == 'ptp':
@@ -398,7 +398,7 @@ def _other_reduce_wrapper(func):
 
 for func_name in _array_reduce_func_other:
     func = getattr(ndarray, func_name)
-    setattr(sparray, func_name, _other_reduce_wrapper(func))
+    setattr(GridData, func_name, _other_reduce_wrapper(func))
 
 
 # _dontunderstand = ('setfield', 'getfieild')

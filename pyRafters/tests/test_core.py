@@ -4,7 +4,7 @@ from __future__ import (absolute_import, division, print_function,
 import six
 import numpy as np
 
-from pyRafters.core import sparray, _axis_attrs, _array_attrs
+from pyRafters.core import GridData, _axis_attrs, _array_attrs
 from numpy import ndarray
 from numpy.testing import assert_array_equal
 from nose.tools import assert_equal, assert_true
@@ -12,18 +12,18 @@ from nose.tools import assert_equal, assert_true
 
 def test_explicit_creation():
     base = np.arange(30).reshape(5, 6)
-    tt = sparray(base)
+    tt = GridData(base)
     assert_array_equal(base, tt.view(ndarray))
 
 
 def test_view_creation():
     base = np.arange(30).reshape(5, 6)
-    tt = base.view(sparray)
+    tt = base.view(GridData)
     assert_array_equal(base, tt.view(ndarray))
 
 
 def test_transpose():
-    base = sparray(np.arange(30).reshape(5, 6),
+    base = GridData(np.arange(30).reshape(5, 6),
                    axis_labels=('x', 'y'),
                    axis_units=('a', 'b'),
                    voxel_size=(1, 2),
@@ -40,7 +40,7 @@ def test_transpose():
 
 
 def _arg_func(func, *args):
-    base = sparray(np.arange(30).reshape(5, 6),
+    base = GridData(np.arange(30).reshape(5, 6),
                    axis_labels=('x', 'y'),
                    axis_units=('a', 'b'),
                    voxel_size=(1, 2),
@@ -52,7 +52,7 @@ def _arg_func(func, *args):
 
 
 def _arg_func_keepdims(func, *args):
-    base = sparray(np.arange(30).reshape(5, 6),
+    base = GridData(np.arange(30).reshape(5, 6),
                    axis_labels=('x', 'y'),
                    axis_units=('a', 'b'),
                    voxel_size=(1, 2),
