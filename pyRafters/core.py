@@ -374,8 +374,16 @@ def _other_reduce_wrapper(func):
             # call the underlying function
             res = func(self.view(ndarray), axis, *args, **kwargs)
             res = asarray(res).view(sparray)
-
-            return self._truncate_axis_md(res, set((axis, )))
+            # ptp is a special snow flake, does not take iterables
+            # for axis, does not take keepdims, but _does_ eat an axis
+            if func.__name__ == 'ptp':
+                return self._truncate_axis_md(res, set((axis, )))
+            # The other functions in this family (cumsum, cumprod) don't
+            # take iterables for axis, don't take keepdims, and _do not_
+            # eat an axis, so just finalize
+            else:
+                res.__array_finalize__(self)
+                return res
 
     inner.__name__ = func.__name__
     inner.__doc__ = func.__doc__
