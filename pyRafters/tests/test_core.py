@@ -7,7 +7,7 @@ import numpy as np
 from pyRafters.core import GridData, _axis_attrs, _array_attrs
 from numpy import ndarray
 from numpy.testing import assert_array_equal
-from nose.tools import assert_equal, assert_true
+from nose.tools import assert_equal
 
 
 def test_explicit_creation():
@@ -79,9 +79,6 @@ def test_downcast():
     for func, arg in _arg_dc:
         yield _arg_func, func, arg
 
-    # TODO add tests for these functions
-    _ = ('dot', ('choose', (1, 2)),)
-
 
 # the point of this test is to make sure we match numpy behavior
 def simple_test_reduction():
@@ -92,7 +89,6 @@ def simple_test_reduction():
         for func in _array_reduce_func:
             yield _func, func
             yield _func, func, 1,
-            yield _func, func, (1,)
             yield _func, func, (0,)
             yield _func, func, (1, 0)
 
@@ -102,3 +98,12 @@ def other_simple_test_reduction():
     for func in _array_reduce_func:
         yield _arg_func, func, 1,
         yield _arg_func, func, 0,
+
+
+# TODO add tests for these functions
+# _ = ('dot', ('choose', (1, 2)),)
+# TODO add tests
+# _should_work = ('astype', 'fill', 'put', 'dump',  'searchsorted', 'clip',
+#                'item', 'itemset',)
+
+# TODO add tests to make sure the meta-data is getting transformed correctly

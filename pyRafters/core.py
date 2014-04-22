@@ -89,6 +89,121 @@ def _validate_md(obj, axis_labels, axis_units,
     #     constrain that one yet
 
 
+def _np_down_cast(func):
+    """
+    helper function that generates a down-casting function
+    for operations that
+    """
+
+    def inner(self, *args, **kwargs):
+        print('down casting')
+        return func(self.view(ndarray), *args, **kwargs)
+    inner.__name__ = func.__name__
+    inner.__doc__ = func.__doc__
+
+    return inner
+
+
+def _other_reduce_wrapper(func):
+    """
+    Helper function for wrapping functions that collapse axis.
+
+    They must take the kwargs `axis` and do not take keepdims
+    """
+    def inner(self, axis=None, *args, **kwargs):
+        if axis is None:
+            # if axis is None, just down-cast as the array is
+            # getting raveled
+            return func(self.view(ndarray), axis, *args, **kwargs)
+        else:
+            # call the underlying function
+            res = func(self.view(ndarray), axis, *args, **kwargs)
+            res = asarray(res).view(GridData)
+            # ptp is a special snow flake, does not take iterables
+            # for axis, does not take keepdims, but _does_ eat an axis
+            if func.__name__ == 'ptp':
+                return self._truncate_axis_md(res, set((axis, )))
+            # The other functions in this family (cumsum, cumprod) don't
+            # take iterables for axis, don't take keepdims, and _do not_
+            # eat an axis, so just finalize
+            else:
+                res.__array_finalize__(self)
+                return res
+
+    inner.__name__ = func.__name__
+    inner.__doc__ = func.__doc__
+
+    return inner
+
+
+def _np_reduce_axis(func):
+    """
+    Helper function for wrapping functions that collapse axis.
+
+    They must take the kwargs `axis` and `keepdims`
+    """
+    def inner(self, axis=None, keepdims=None, *args, **kwargs):
+        # TODO fix default behavior for cumsum, cumprod, ptp
+        if axis is None:
+            # default to reducing along all axes
+            axis = tuple(range(self.ndim))
+        else:
+            axis = tuple(np.atleast_1d(axis))
+        if keepdims is None:
+            # default to dropping dimensions
+            # We may want to do this, but numpy functions will assume
+            # the default is False which may break things
+            keepdims = False
+
+        print(axis)
+        print(keepdims)
+        # down cast to ndarray to call function
+        tmp_res = func(self.view(ndarray), axis=axis,
+                       keepdims=keepdims, *args, **kwargs)
+        # up-cast the result
+        res = asarray(tmp_res).view(GridData)
+
+        # propagate the axis meta-data
+        if keepdims:
+            # in this case, preserve labels, but
+            # squash
+            res.__array_finalize__(self)
+            print(res)
+            for ax in axis:
+                print(ax)
+                old_offset = self.axis_offsets[ax]
+                old_count = self.shape[ax]
+                old_voxel_size = self.voxel_size[ax]
+
+                res.voxel_size[ax] = (old_voxel_size * old_count)
+                res.axis_offsets[ax] = (old_offset - old_voxel_size/2 +
+                                        res.voxel_size[ax]/2)
+
+            return self.__array_wrap__(res)
+
+        else:
+            # so we have lost some axis
+            # make sure the axis labels are sorted
+            res.d_id = self.d_id
+            res.label_data = self.label_data
+            # make sure we make a copy of the dict, not just keep a ref
+            res.metadata = dict()
+            res.metadata.update(self.metadata)
+
+            # set of axis we will be skipping
+            if np.isscalar(axis):
+                axis_set = set([axis, ])
+            else:
+                axis_set = set(axis)
+
+            return self._truncate_axis_md(res, axis_set)
+
+    inner.__name__ = func.__name__
+    inner.__doc__ = func.__doc__
+
+    return inner
+
+
 class GridData(ndarray):
     "Extends a numpy array with meta information"
     # See http://docs.scipy.org/doc/numpy/user/basics.subclassing.html
@@ -255,105 +370,29 @@ class GridData(ndarray):
         return self.__array_wrap__(res)
 
 
+# function we just want to down-cast to returning numpy arrays these are
+# functions where it is not obvious (reshaping) or impossible
+# (voxel would no longer be evenly spaced) to generate a proper
+# GridData object to return
 _down_cast_fun = ('argpartition', 'compress', 'choose', 'dot',
                    'partition', 'sort', 'argsort', 'repeat',
                    'reshape', 'take', 'argmax', 'argmin', 'diagonal',
-                    'flatten', 'nonzero', 'ravel', 'trace')
+                    'flatten', 'nonzero', 'ravel', 'trace', 'setfield',
+                    'getfield')
 
-
-def _np_down_cast(func):
-    """
-    helper function that generates a down-casting function
-    for operations that
-    """
-
-    def inner(self, *args, **kwargs):
-        print('down casting')
-        return func(self.view(ndarray), *args, **kwargs)
-    inner.__name__ = func.__name__
-    inner.__doc__ = func.__doc__
-
-    return inner
-
+# do some meta-programming magic to grab, wrap and assign the
+# function to the GridData class
 for func_name in _down_cast_fun:
-    print(func_name)
     func = getattr(ndarray, func_name)
     setattr(GridData, func_name, _np_down_cast(func))
+
 
 # first set of functions which get run through the reduce framework
 # these functions default to calling the function on all axis if
 # axis = None
 _array_reduce_func = ('max', 'min', 'mean', 'prod', 'sum', 'var')
 
-
-def _np_reduce_axis(func):
-    """
-    Helper function for wrapping functions that collapse axis.
-
-    They must take the kwargs `axis` and `keepdims`
-    """
-    def inner(self, axis=None, keepdims=None, *args, **kwargs):
-        # TODO fix default behavior for cumsum, cumprod, ptp
-        if axis is None:
-            # default to reducing along all axes
-            axis = tuple(range(self.ndim))
-        else:
-            axis = tuple(np.atleast_1d(axis))
-        if keepdims is None:
-            # default to dropping dimensions
-            # We may want to do this, but numpy functions will assume
-            # the default is False which may break things
-            keepdims = False
-
-        print(axis)
-        print(keepdims)
-        # down cast to ndarray to call function
-        tmp_res = func(self.view(ndarray), axis=axis,
-                       keepdims=keepdims, *args, **kwargs)
-        # up-cast the result
-        res = asarray(tmp_res).view(GridData)
-
-        # propagate the axis meta-data
-        if keepdims:
-            # in this case, preserve labels, but
-            # squash
-            res.__array_finalize__(self)
-            print(res)
-            for ax in axis:
-                print(ax)
-                old_offset = self.axis_offsets[ax]
-                old_count = self.shape[ax]
-                old_voxel_size = self.voxel_size[ax]
-
-                res.voxel_size[ax] = (old_voxel_size * old_count)
-                res.axis_offsets[ax] = (old_offset - old_voxel_size/2 +
-                                        res.voxel_size[ax]/2)
-
-            return self.__array_wrap__(res)
-
-        else:
-            # so we have lost some axis
-            # make sure the axis labels are sorted
-            res.d_id = self.d_id
-            res.label_data = self.label_data
-            # make sure we make a copy of the dict, not just keep a ref
-            res.metadata = dict()
-            res.metadata.update(self.metadata)
-
-            # set of axis we will be skipping
-            if np.isscalar(axis):
-                axis_set = set([axis, ])
-            else:
-                axis_set = set(axis)
-
-            return self._truncate_axis_md(res, axis_set)
-
-    inner.__name__ = func.__name__
-    inner.__doc__ = func.__doc__
-
-    return inner
-
-
+# some meta-programming tricks as above
 for func_name in _array_reduce_func:
     func = getattr(ndarray, func_name)
     setattr(GridData, func_name, _np_reduce_axis(func))
@@ -364,44 +403,10 @@ for func_name in _array_reduce_func:
 # not accept the keepdims kwarg
 _array_reduce_func_other = ('cumsum', 'cumprod', 'ptp')
 
-
-def _other_reduce_wrapper(func):
-    """
-    Helper function for wrapping functions that collapse axis.
-
-    They must take the kwargs `axis` and do not take keepdims
-    """
-    def inner(self, axis=None, *args, **kwargs):
-        if axis is None:
-            # if axis is None, just down-cast as the array is
-            # getting raveled
-            return func(self.view(ndarray), axis, *args, **kwargs)
-        else:
-            # call the underlying function
-            res = func(self.view(ndarray), axis, *args, **kwargs)
-            res = asarray(res).view(GridData)
-            # ptp is a special snow flake, does not take iterables
-            # for axis, does not take keepdims, but _does_ eat an axis
-            if func.__name__ == 'ptp':
-                return self._truncate_axis_md(res, set((axis, )))
-            # The other functions in this family (cumsum, cumprod) don't
-            # take iterables for axis, don't take keepdims, and _do not_
-            # eat an axis, so just finalize
-            else:
-                res.__array_finalize__(self)
-                return res
-
-    inner.__name__ = func.__name__
-    inner.__doc__ = func.__doc__
-
-    return inner
-
+# some meta-programming tricks as above
 for func_name in _array_reduce_func_other:
     func = getattr(ndarray, func_name)
     setattr(GridData, func_name, _other_reduce_wrapper(func))
 
-
+# TODO sort out what these functions are and how they work
 # _dontunderstand = ('setfield', 'getfieild')
-
-# _should_work = ('astype', 'fill', 'put', 'dump',  'searchsorted', 'clip',
-#                'item', 'itemset',)
