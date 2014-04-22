@@ -15,12 +15,12 @@ from itertools import chain
 _axis_attrs = ('axis_labels', 'axis_units', 'axis_offsets',
           'voxel_size')
 # added attributes which know about the whole frame
-_array_attrs = ('metadata', 'label_data', 'd_id')
+_array_attrs = ('metadata', 'label_data', 'd_id', 'data_unit')
 
 
 def _make_default_md(obj, axis_labels, axis_units,
                 axis_offsets, voxel_size, metadata,
-                label_data, d_id):
+                label_data, d_id, data_unit):
     """
     Helper function for setting sensible defaults
     """
@@ -57,8 +57,11 @@ def _make_default_md(obj, axis_labels, axis_units,
 
     # don't do anything to _id, just let it pass through
 
+    if data_unit is None:
+        data_unit = ''
+
     return (axis_labels, axis_units, axis_offsets,
-            voxel_size, metadata, label_data, d_id)
+            voxel_size, metadata, label_data, d_id, data_unit)
 
 # template for error message
 _validate_err_msg = "length of {k} much match ndims len: {ln} ndims: {ndim}"
@@ -66,7 +69,7 @@ _validate_err_msg = "length of {k} much match ndims len: {ln} ndims: {ndim}"
 
 def _validate_md(obj, axis_labels, axis_units,
                 axis_offsets, voxel_size, metadata,
-                label_data, d_id):
+                label_data, d_id, data_unit):
     ndims = obj.ndim
     # do not attempt to modify these values, only look at them
     ld = locals()
@@ -81,6 +84,9 @@ def _validate_md(obj, axis_labels, axis_units,
         raise ValueError("meta-data must be a dict")
 
     # don't bother to validate the bool, everything is truthy enough
+    # don't bother to validate the id, anything is good enough
+    # don't bother to validate the units, don't know how we want to
+    #     constrain that one yet
 
 
 class sparray(ndarray):
@@ -89,7 +95,7 @@ class sparray(ndarray):
 
     def __new__(cls, input_array, axis_labels=None, axis_units=None,
                 axis_offsets=None, voxel_size=None, metadata=None,
-                label_data=False, d_id=None):
+                label_data=False, d_id=None, data_unit=None):
         print("__new__")
         # grab version of input as a numpy array
         obj = asarray(input_array).view(cls)
@@ -97,7 +103,7 @@ class sparray(ndarray):
         args = _make_default_md(obj, axis_labels,
                                 axis_units, axis_offsets,
                                 voxel_size, metadata,
-                                label_data, d_id)
+                                label_data, d_id, data_unit)
         _validate_md(obj, *args)
         # this relies on magic ordering of the attribute lists
         # and the args
