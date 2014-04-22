@@ -7,7 +7,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import six
 from six.moves import range, zip
-from numpy import ndarray, asarray, array, arange
+from numpy import ndarray, asarray, array
 import numpy as np
 from itertools import chain
 
