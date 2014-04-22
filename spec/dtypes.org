@@ -17,6 +17,7 @@ phase of the moon, keys to look stuff up in other databases.
 
 ** requriements
  - n-dimennions
+ - know units of data in array
  - know units and values of axes
  - be able to select up to n-1 axes to iterate over
    - specify order of cycling
@@ -29,6 +30,8 @@ phase of the moon, keys to look stuff up in other databases.
  - know if continuous or labeled data
  - provide access to axes units
  - allow for off sets in units (ie, specify the location of (0, ...) )
+ - data 'is' at center of voxel (see ITK docs for explanation of why)
+
 ** constraints
  - evenly spaced along each axis?
  - homogeneous datatype
@@ -42,14 +45,32 @@ of c-extensions to work (see pandas issues with matplotlib
 for issues with duck typing)
 
 
-* table (irregular_data)
+* table (TableData)
+The selling point of this data type is the filtering functions
+and the ability to front a DB table.  Ability to reduce boiler plate
+when sticky taping together multiple channel from the spec backend
+
 Same idea as a DB table, all columns and rows filled.
-column is fixed data type, rows can be heterogeneous.
-Columns know name and units
+column has fixed data type, rows are heterogeneous.
+Columns know name, units, etc.
+
+One push back against this data type is to say we should (at worst) have
+a sequence data dtype and all of this meta-data gets shoved in to the
+existing data objects (instead of having a table with a 'Pressure' column
+and a 'Images' column, embed the pressure information in the meta-data
+of the GridData objects in the 'Images' column) which is a fair point.
+However, if you want to stick to together a sequence of GridData and the
+output of running those images through some previous processing step
+(ex each GridData generates 1...* PointSet or Mesh objects as output of
+previous steps) then the tools that want both should just take in two
+lists.
+
+** possible implementations
  - backed by np-recarray
  - backed by sql* (sqlalchemy?)
  - backed by dictionary (mongodb?)
  - backed by pandas
+
 ** use cases
  - results of image proc
    - contour paths
@@ -58,12 +79,14 @@ Columns know name and units
  - meta-data
 
 ** requirements
- - source column meta-data
+ - column meta-data
  - select by row
  - iter by rows
  - select by column
- - filtering?
-   - sub-class you can throw sql queries at?
+ - filtering
+   - select rows by conditions on columns
+   - ex return an iterable of rows where one of the columns meets some
+     condition
 
 ** constraints
  - columns are fixed width (mostly applies to strings)
