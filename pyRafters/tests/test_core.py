@@ -31,7 +31,12 @@ def test_transpose():
 
     for tt in [base.T, base.transpose()]:
         for k in _axis_attrs:
-            assert_equal(getattr(tt, k), getattr(base, k)[::-1])
+            a = getattr(tt, k)
+            b = getattr(base, k)[::-1]
+            if isinstance(a, ndarray):
+                assert_array_equal(a, b)
+            else:
+                assert_equal(a, b)
 
 
 def _arg_func(func, *args):
@@ -43,6 +48,18 @@ def _arg_func(func, *args):
 
     r = getattr(base, func)(*args)
     r2 = getattr(base.view(ndarray), func)(*args)
+    assert_array_equal(r, r2)
+
+
+def _arg_func_keepdims(func, *args):
+    base = sparray(np.arange(30).reshape(5, 6),
+                   axis_labels=('x', 'y'),
+                   axis_units=('a', 'b'),
+                   voxel_size=(1, 2),
+                   axis_offsets=(1, 0))
+
+    r = getattr(base, func)(*args, keepdims=True)
+    r2 = getattr(base.view(ndarray), func)(*args, keepdims=True)
     assert_array_equal(r, r2)
 
 
@@ -64,3 +81,24 @@ def test_downcast():
 
     # TODO add tests for these functions
     _ = ('dot', ('choose', (1, 2)),)
+
+
+# the point of this test is to make sure we match numpy behavior
+def simple_test_reduction():
+    _array_reduce_func = ('max', 'min', 'mean', 'prod', 'sum', 'var')
+
+    # test with selecting axis, with and with out keepdims
+    for _func in (_arg_func, _arg_func_keepdims):
+        for func in _array_reduce_func:
+            yield _func, func
+            yield _func, func, 1,
+            yield _func, func, (1,)
+            yield _func, func, (0,)
+            yield _func, func, (1, 0)
+
+
+def other_simple_test_reduction():
+    _array_reduce_func = ('cumsum', 'cumprod', 'ptp')
+    for func in _array_reduce_func:
+        yield _arg_func, func, 1,
+        yield _arg_func, func, 0,
