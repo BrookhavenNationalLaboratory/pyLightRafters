@@ -246,7 +246,8 @@ def _sink_filter(trait_in):
 
 
 def _trait_mapper(trait_in):
-    if isinstance(trait_in, traitlets.Int):
+    if (isinstance(trait_in, traitlets.Int) or
+         isinstance(trait_in, traitlets.Integer)):
         return int
     elif isinstance(trait_in, traitlets.Float):
         return float
