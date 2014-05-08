@@ -53,6 +53,15 @@ class BaseHdf(SingleFileHandler):
         self._File = h5py.File(self.backing_file, **self._h5_kwargs)
         self._group = self._File.ensure_group(self._group_name)
 
+    def deactivate(self):
+        if self._group is not None:
+            del self._group
+            self._group = None
+        if self._File is not None:
+            self._File.close()
+            del self._File
+            self._File = None
+
 
 class HdfTableSink(BaseHdf, TableSink):
     def activate(self):
@@ -62,3 +71,9 @@ class HdfTableSink(BaseHdf, TableSink):
 
         # finally pass up the call stack
         super(HdfTableSink, self).activate()
+
+    @require_active
+    def write_table(self, rec_array, table_name):
+        # this will blow up unceremoniously if table_name
+        # already exists.  This will auto-magically
+        self._group[table_name] = rec_array
