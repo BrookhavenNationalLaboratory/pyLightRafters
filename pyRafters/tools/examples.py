@@ -10,7 +10,8 @@ import numpy as np
 from ..tools_base import ToolBase
 from ..handler_base import (DistributionSource, DistributionSink,
                             ImageSource)
-from ..handlers.base_file_handlers import OpaqueFigure
+from ..handlers.base_file_handlers import (OpaqueFigure, OpaqueFileSource,
+                                           OpaqueFileSink)
 
 import IPython.utils.traitlets as traitlets
 
@@ -150,3 +151,38 @@ class ImageHistogram(ToolBase):
         fig.savefig(fname)
         # clean up
         plt.close('all')
+
+
+class FileRepeat(ToolBase):
+    """
+    This is an example tool that takes in an OpaqueFileSource,
+    OpaqueFileSink, and an integer.  The contents of the first file are
+    repeated that number of times into the output file.
+    """
+    src_file = traitlets.Instance(klass=OpaqueFileSource,
+                                  tooltip='source file',
+                                  label='input')
+
+    snk_file = traitlets.Instance(klass=OpaqueFileSink,
+                                  tooltip='source file',
+                                  label='output')
+    repeat_count = traitlets.Integer(1, tooltip='number of times to repeat',
+                                     label='input')
+
+    def run(self):
+        # grab the backing file of the source.  In general, source/sinks
+        # need to be activated before they can be used, but you don't need to
+        # in this case because you just need to get a string out.
+        src_fname = self.src_file.backing_file
+        # grab the backing file for the destination file
+        snk_fname = self.snk_file.backing_file
+
+        # open the output file for writing
+        with open(snk_fname, 'w') as snk:
+            # loop over the number of times to repeat
+            for j in range(self.repeat_count):
+                # open the source read only
+                with open(src_fname, 'r') as src:
+                    # copy all of the lines to the new file
+                    for ln in src.readlines():
+                        snk.write(ln)
