@@ -119,25 +119,34 @@ class ImageHistogram(ToolBase):
         import numpy as np
 
         # activate and grab input data
-        self.input_file.activate()
-        im = self.input_file.get_frame(0)
+        with self.input_file as src:
+            im = src.get_frame(0)
 
+        # set up matplotlib figure + axes
         fig, ax = plt.subplots(1, 1)
         ax.set_xlabel('count')
         ax.set_ylabel('vals')
 
+        # if rgb image, do each channel separately
         if len(im.shape) == 3 and im.shape[2] in (3, 4):
             # assume rgb
+            # loop over colors
             for j, c in zip(xrange(3), ('r', 'g', 'b')):
+                # compute histogram for channel
                 vals, edges = np.histogram(im[..., j].flat, bins=100)
+                # add line to graph
                 ax.step(edges[:-1], vals, where='post', color=c, label=c)
+        # other wise, treat as gray scale
         else:
+            # compute histogram of image
             vals, edges = np.histogram(im.flat, bins=100)
+            # add line to graph
             ax.step(edges[:-1], vals, where='post')
 
-        self.out_file.activate()
-        fname = self.out_file.backing_file
+        # grab path of where to save figure
+        with self.out_file as snk:
+            fname = snk.backing_file
+        # save the figure
         fig.savefig(fname)
-        self.input_file.deactivate()
-        self.out_file.deactivate()
+        # clean up
         plt.close('all')
