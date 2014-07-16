@@ -1,0 +1,109 @@
+
+Everything is assumed to carry around a dictionary of arbitrary
+other meta-data which is un-related to the accessing of the data.  For
+example, this dictionary might contain information like run number,
+phase of the moon, keys to look stuff up in other databases.
+
+* slicable ND array (GridData)
+** use-case
+ - f(t)
+ - x,y
+ - x,y,f(t)
+ - x,y,(theta)
+ - x,y,z
+ - x,y,z,f(t)
+ - x,y,z,E
+ - x,y,z,E,f(t)
+
+** requriements
+ - n-dimennions
+ - know units of data in array
+ - know units and values of axes
+ - be able to select up to n-1 axes to iterate over
+   - specify order of cycling
+ - use all standard np slicing
+ - return regions based on bounds in units
+ - returned objects are of same type (or better)
+ - deal with out-of-core data
+   - h5py style, slicing into these objects return
+     the in-core version full of data
+ - know if continuous or labeled data
+ - provide access to axes units
+ - allow for off sets in units (ie, specify the location of (0, ...) )
+ - data 'is' at center of voxel (see ITK docs for explanation of why)
+
+** constraints
+ - evenly spaced along each axis?
+ - homogeneous datatype
+
+* in-core sliceable ND array (GridData)
+same as above, but must be drop-in replacement for
+numpy arrays.  This includes basic numpy functionality
+must work + all third party libraries.  This basically
+constrains us to extent numpy array to get the magic
+of c-extensions to work (see pandas issues with matplotlib
+for issues with duck typing)
+
+
+* table (TableData)
+The selling point of this data type is the filtering functions
+and the ability to front a DB table.  Ability to reduce boiler plate
+when sticky taping together multiple channel from the spec backend
+
+Same idea as a DB table, all columns and rows filled.
+column has fixed data type, rows are heterogeneous.
+Columns know name, units, etc.
+
+One push back against this data type is to say we should (at worst) have
+a sequence data dtype and all of this meta-data gets shoved in to the
+existing data objects (instead of having a table with a 'Pressure' column
+and a 'Images' column, embed the pressure information in the meta-data
+of the GridData objects in the 'Images' column) which is a fair point.
+However, if you want to stick to together a sequence of GridData and the
+output of running those images through some previous processing step
+(ex each GridData generates 1...* PointSet or Mesh objects as output of
+previous steps) then the tools that want both should just take in two
+lists.
+
+** possible implementations
+ - backed by np-recarray
+ - backed by sql* (sqlalchemy?)
+ - backed by dictionary (mongodb?)
+ - backed by pandas
+
+** use cases
+ - results of image proc
+   - contour paths
+   - stats on labeled regions
+   - tracking results
+ - meta-data
+
+** requirements
+ - column meta-data
+ - select by row
+ - iter by rows
+ - select by column
+ - filtering
+   - select rows by conditions on columns
+   - ex return an iterable of rows where one of the columns meets some
+     condition
+
+** constraints
+ - columns are fixed width (mostly applies to strings)
+
+* slicable ND point cloud (PointSet)
+looks like specialization of table, but should be done with kd-tree
+or hash table
+** use cases
+ - recpricoal space data
+ - sparse representation of data
+
+** requirements
+ - on-the-fly rebinned slices
+ - nearest neighbors in ball
+ - replicate table interface
+** constraints
+ - units in all dimensions must be the same (so distance logic works)
+
+* Mesh
+ - PointSet + topology
